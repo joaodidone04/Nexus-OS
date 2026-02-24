@@ -1,42 +1,155 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+
+/* 
+   NΞXUS // BASE STYLE REPOSITORY
+   Core structural and visual definitions
+*/
+
+:root {
+    --deep-black: #020205;
+    --neon-blue: #3b82f6;
+    --core-glow: rgba(59, 130, 246, 0.15);
+    --grid-color: rgba(59, 130, 246, 0.05);
+    --accent-color: #3b82f6; 
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+/* BASE RESET & LAYOUT */
+body {
+    font-family: 'Exo 2', sans-serif;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: var(--deep-black);
+    color: white;
+    perspective: 1000px;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+/* TIPOGRAFIA TÉCNICA */
+.tech-font { 
+    font-family: 'Chakra Petch', sans-serif; 
+    letter-spacing: 0.02em;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+.data-font { 
+    font-family: 'Rajdhani', sans-serif; 
 }
 
-.card {
-  padding: 2em;
+.brand-font {
+    font-family: 'Chakra Petch', sans-serif;
+    letter-spacing: 0.2em;
+    font-weight: 700;
 }
 
-.read-the-docs {
-  color: #888;
+/* BACKGROUND ARCHITECTURE */
+.bg-base {
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(circle at 50% 50%, #080a15 0%, #020205 100%);
+    z-index: -5;
+}
+
+.bg-grid {
+    position: fixed;
+    inset: 0;
+    background-image: 
+        linear-gradient(var(--grid-color) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+    background-size: 50px 50px;
+    z-index: -4;
+    mask-image: radial-gradient(ellipse 80% 50% at 50% 50%, black 20%, transparent 100%);
+    opacity: 0.5;
+}
+
+.particles {
+    position: fixed;
+    inset: 0;
+    z-index: -3;
+    pointer-events: none;
+}
+
+.particle {
+    position: absolute;
+    background: #fff;
+    border-radius: 50%;
+    opacity: 0.2;
+    filter: blur(1px);
+}
+
+.bokeh {
+    position: absolute;
+    width: 800px;
+    height: 800px;
+    border-radius: 50%;
+    filter: blur(150px);
+    z-index: -2;
+    opacity: 0.12;
+    pointer-events: none;
+}
+
+.vignette {
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(circle at center, transparent 30%, rgba(0,0,0,0.6) 100%);
+    z-index: -1;
+    pointer-events: none;
+}
+
+/* COMPONENT GLASS STYLES */
+.glass-premium {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(40px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+.neural-orb {
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, var(--neon-blue) 0%, transparent 70%);
+    border-radius: 50%;
+    filter: blur(40px);
+    opacity: 0.3;
+}
+
+.scanlines {
+    position: fixed;
+    inset: 0;
+    z-index: 500;
+    pointer-events: none;
+    background: linear-gradient(
+        to bottom,
+        transparent 50%,
+        rgba(0, 0, 0, 0.03) 50%
+    );
+    background-size: 100% 4px;
+}
+
+.noise {
+    position: fixed;
+    inset: 0;
+    z-index: 501;
+    pointer-events: none;
+    opacity: 0.02;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+}
+
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+
+.transition-premium {
+    transition: all 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* DYNAMIC REPORT STYLES */
+.report-body h1, 
+.report-body h2, 
+.report-body strong { 
+    color: var(--accent-color); 
+    font-family: 'Chakra Petch', sans-serif; 
+    text-transform: uppercase; 
+    display: block; 
+    margin-top: 1.5rem; 
+    margin-bottom: 0.5rem; 
+    letter-spacing: 0.1em; 
+    font-size: 0.9rem; 
+    border-left: 2px solid var(--accent-color); 
+    padding-left: 10px; 
 }
