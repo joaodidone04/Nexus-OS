@@ -1,11 +1,11 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { useNexus } from "../context/NexusContext";
-import TaskCard from "../components/TaskCard.jsx";
-import Calendar from "../components/Calendar.jsx";
-import NewTaskModal from "../components/NewTaskModal.jsx";
-import ModulesEditorModal from "../components/ModulesEditorModal.jsx";
+import { useNexus } from "../../context/NexusContext.jsx";
+import TaskCard from "../../components/TaskCard.jsx";
+import Calendar from "../../components/Calendar/Calendar.jsx";
+import NewTaskModal from "../../components/NewTaskModal.jsx";
+import ModulesEditorModal from "../../components/ModulesEditorModal.jsx";
 
-import { readModulesLocal, writeModulesLocal } from "../services/modulesStorage";
+import { readModulesLocal, writeModulesLocal } from "../../services/modulesStorage.js";
 
 const TaskStatus = {
   TODO: "TODO",

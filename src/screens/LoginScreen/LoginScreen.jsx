@@ -3,7 +3,7 @@ import {
   streamProfilesLocal,
   createProfileLocal,
   deleteProfileLocal,
-} from "../services/profileStorage";
+} from "../../services/profileStorage";
 
 // ✅ DEFAULT_STATIONS definido aqui (MVP)
 const DEFAULT_STATIONS = [
