@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import ModalContainer from "./ModalContainer";
+import ModalContainer from "../ModalContainer/ModalContainer";
 
 const DEFAULT_COLORS = [
   "#7c3aed",

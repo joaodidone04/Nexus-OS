@@ -2,9 +2,9 @@ import React from "react";
 import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import { useNexus } from "./context/NexusContext";
 
-import LoginScreen from "./screens/LoginScreen";
-import NexusStations from "./screens/NexusStations";
-import MissionsStation from "./stations/MissionsStation";
+import LoginScreen from "./screens/LoginScreen/LoginScreen";
+import NexusStations from "./screens/NexusStations/NexusStations";
+import MissionsStation from "./stations/MissionsStations/MissionsStation";
 
 function FinanceStation() {
   return <div style={{ padding: 40 }}>Finance Station</div>;

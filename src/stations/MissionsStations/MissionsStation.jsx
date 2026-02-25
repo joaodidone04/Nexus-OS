@@ -1,9 +1,9 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNexus } from "../../context/NexusContext.jsx";
-import TaskCard from "../../components/TaskCard.jsx";
+import TaskCard from "../../components/Taskcard/TaskCard.jsx";
 import Calendar from "../../components/Calendar/Calendar.jsx";
-import NewTaskModal from "../../components/NewTaskModal.jsx";
-import ModulesEditorModal from "../../components/ModulesEditorModal.jsx";
+import NewTaskModal from "../../components/NewTask/NewTaskModal.jsx";
+import ModulesEditorModal from "../../components/Modules/ModulesEditorModal.jsx";
 
 import { readModulesLocal, writeModulesLocal } from "../../services/modulesStorage.js";
 
