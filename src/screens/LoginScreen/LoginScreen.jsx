@@ -4,6 +4,7 @@ import {
   createProfileLocal,
   deleteProfileLocal,
 } from "../../services/profileStorage";
+import "./LoginScreen.css";
 
 // ✅ DEFAULT_STATIONS definido aqui (MVP)
 const DEFAULT_STATIONS = [

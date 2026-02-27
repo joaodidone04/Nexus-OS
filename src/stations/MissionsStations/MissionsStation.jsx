@@ -4,8 +4,8 @@ import TaskCard from "../../components/Taskcard/TaskCard.jsx";
 import Calendar from "../../components/Calendar/Calendar.jsx";
 import NewTaskModal from "../../components/NewTask/NewTaskModal.jsx";
 import ModulesEditorModal from "../../components/Modules/ModulesEditorModal.jsx";
-
 import { readModulesLocal, writeModulesLocal } from "../../services/modulesStorage.js";
+import "./MissionsStations.css";
 
 const TaskStatus = {
   TODO: "TODO",

@@ -1,0 +1,65 @@
+/* =========================================
+   STATIONS LAYOUT (wrapper)
+   ========================================= */
+.stations-root{
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+}
+.stations-content{
+  position: fixed;
+  inset: 0;
+  padding: 60px;
+  z-index: 10;
+}
+
+/* TOPBAR */
+.nx-topbar{
+  position: fixed;
+  top: 14px;
+  left: 16px;
+  right: 16px;
+  z-index: 9999;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  pointer-events: none; /* o container não pega clique */
+}
+
+/* ✅ quando estiver dentro de missions, empurra pra não ficar sobre o sidebar */
+.nx-topbar.is-missions{
+  left: calc(var(--ms-sidebar-w) + 16px);
+}
+
+.nx-topbar-left,
+.nx-topbar-right{
+  display: flex;
+  gap: 10px;
+  pointer-events: auto; /* ✅ botões clicáveis */
+}
+
+.nx-topbar-btn{
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(0,0,0,0.25);
+  color: rgba(255,255,255,0.85);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  transition: 0.2s ease;
+}
+
+.nx-topbar-btn:hover{
+  background: rgba(255,255,255,0.08);
+  border-color: rgba(255,255,255,0.18);
+}
+
+.nx-topbar-btn.danger{
+  color: #ff5a5a;
+  border-color: rgba(255,90,90,0.35);
+}

@@ -1,0 +1,194 @@
+/* =========================
+   NEW TASK — FORM SYSTEM (nx-*)
+   ========================= */
+.nx-form{ display: flex; flex-direction: column; gap: 16px; }
+.nx-field{ display: flex; flex-direction: column; gap: 10px; }
+
+.nx-label{
+  font-size: 10px;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: rgba(147,197,253,0.70);
+}
+
+.nx-input{
+  border-radius: 12px;
+  padding: 14px 16px;
+  border: 1px solid rgba(59,130,246,0.18);
+  background: rgba(0,0,0,0.55);
+  color: rgba(255,255,255,0.92);
+  outline: none;
+}
+.nx-input:focus{ border-color: rgba(59,130,246,0.55); }
+
+.nx-textarea{
+  border-radius: 12px;
+  padding: 14px 16px;
+  border: 1px solid rgba(59,130,246,0.18);
+  background: rgba(0,0,0,0.55);
+  color: rgba(255,255,255,0.85);
+  outline: none;
+}
+.nx-textarea:focus{ border-color: rgba(59,130,246,0.55); }
+
+.nx-grid-2{
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+@media (min-width: 900px){
+  .nx-grid-2{ grid-template-columns: 1fr 1fr; }
+}
+
+.nx-priority-grid{
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.nx-chip,
+.nx-recur-btn{
+  height: 42px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(255,255,255,0.03);
+  cursor: pointer;
+  transition: transform .12s ease, filter .18s ease;
+  font-size: 10px;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.55);
+}
+.nx-chip:hover,
+.nx-recur-btn:hover{ filter: brightness(1.08); transform: translateY(-1px); }
+
+.nx-recurrence{
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(59,130,246,0.12);
+  background: rgba(59,130,246,0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.nx-recurrence-row{ display: flex; gap: 10px; }
+
+.nx-weekdays{ display: flex; gap: 8px; flex-wrap: wrap; }
+
+.nx-day{
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(255,255,255,0.03);
+  color: rgba(255,255,255,0.65);
+  cursor: pointer;
+  transition: transform .12s ease, filter .18s ease;
+}
+.nx-day:hover{ filter: brightness(1.08); transform: translateY(-1px); }
+.nx-day.is-on{
+  color: rgba(255,255,255,0.95);
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.10) inset;
+}
+
+.nx-obj-row{
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+}
+.nx-obj-add{
+  height: 46px;
+  padding: 0 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(59,130,246,0.25);
+  background: rgba(59,130,246,0.16);
+  color: rgba(255,255,255,0.85);
+  cursor: pointer;
+  font-size: 10px;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+}
+.nx-obj-add:hover{ filter: brightness(1.08); }
+
+.nx-obj-list{ margin-top: 10px; display: flex; flex-direction: column; gap: 8px; }
+
+.nx-obj-item{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.03);
+  color: rgba(255,255,255,0.70);
+}
+
+.nx-obj-del{
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(0,0,0,0.30);
+  color: rgba(255,255,255,0.55);
+  cursor: pointer;
+}
+.nx-obj-del:hover{ color: rgba(255,255,255,0.95); background: rgba(255,255,255,0.05); }
+
+.nx-border-grid{
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+@media (min-width: 900px){
+  .nx-border-grid{ grid-template-columns: repeat(3, 1fr); }
+}
+
+.nx-border-chip{
+  height: 44px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(255,255,255,0.02);
+  color: rgba(255,255,255,0.70);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 12px;
+  font-size: 10px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  transition: transform .12s ease, filter .18s ease;
+}
+.nx-border-chip:hover{ filter: brightness(1.08); transform: translateY(-1px); }
+
+.nx-swatch{
+  width: 12px;
+  height: 12px;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.nx-icons{
+  border-radius: 14px;
+  border: 1px solid rgba(59,130,246,0.18);
+  background: rgba(0,0,0,0.55);
+  padding: 10px;
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 8px;
+  max-height: 180px;
+  overflow: auto;
+}
+
+.nx-icon-btn{
+  height: 42px;
+  border-radius: 12px;
+  border: 2px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  font-size: 18px;
+  transition: transform .12s ease, background .18s ease, filter .18s ease;
+}
+.nx-icon-btn:hover{ transform: scale(1.06); background: rgba(255,255,255,0.05); }

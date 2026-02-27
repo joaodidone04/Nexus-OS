@@ -1,0 +1,360 @@
+/* =========================================
+   LOGIN (GLOBAL)
+   ========================================= */
+.login-root{
+  position: fixed;
+  inset: 0;
+  background: var(--deep-black);
+  overflow: hidden;
+}
+
+.login-boot{
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: var(--deep-black);
+  z-index: 9999;
+  opacity: 1;
+  transition: opacity 600ms ease;
+}
+.login-boot.is-fadeout{ opacity: 0; }
+.login-boot-inner{
+  width: min(900px, 92vw);
+  text-align: center;
+  transform: translateY(0px);
+  transition: transform 600ms ease;
+}
+.login-boot.is-fadeout .login-boot-inner{ transform: translateY(6px); }
+.login-boot-text{ margin-top: -150px; }
+.login-boot-sub{
+  margin-top: 18px;
+  font-size: 11px;
+  letter-spacing: 0.45em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.login-content{
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 700ms ease, transform 700ms ease;
+  z-index: 10;
+}
+.login-content.is-visible{ opacity: 1; transform: translateY(0px); }
+
+.login-shell{
+  width: min(1100px, 92vw);
+  padding: 0 24px;
+  text-align: center;
+}
+
+.login-title{
+  margin: 0 0 48px 0;
+  font-size: clamp(48px, 7vw, 110px);
+  line-height: 1;
+  letter-spacing: 0.2em;
+  font-weight: 800;
+  color: white;
+}
+.login-dot{ color: var(--neon-blue); }
+
+.login-selection{
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.login-card-wrap{ position: relative; display: inline-block; }
+
+.login-card,
+.login-card-add{
+  width: 192px;
+  height: 224px;
+  border-radius: 26px;
+  cursor: pointer;
+  color: white;
+  transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+  user-select: none;
+}
+
+.login-card{
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(40px);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+.login-card:hover{
+  transform: scale(1.04);
+  border-color: rgba(59, 130, 246, 0.40);
+}
+
+.login-card-name{
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 13px;
+  opacity: 0.95;
+}
+
+.login-card-add{
+  background: transparent;
+  border: 2px dashed rgba(255, 255, 255, 0.14);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+.login-card-add:hover{
+  border-color: rgba(59, 130, 246, 0.55);
+  background: rgba(59, 130, 246, 0.06);
+}
+
+.login-plus{
+  width: 46px;
+  height: 46px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  display: grid;
+  place-items: center;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 22px;
+}
+.login-add-label{
+  color: rgba(255, 255, 255, 0.60);
+  text-transform: uppercase;
+  font-size: 12px;
+}
+
+.login-card-delete{
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.80);
+  display: grid;
+  place-items: center;
+  transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+.login-card-delete:hover{
+  transform: scale(1.05);
+  border-color: rgba(248, 113, 113, 0.55);
+  background: rgba(248, 113, 113, 0.10);
+}
+
+.login-avatar{
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
+  background: #12121a;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.25);
+}
+.login-avatar.big{
+  width: 96px;
+  height: 96px;
+  margin: 0 auto 14px auto;
+}
+.login-avatar img{ width: 100%; height: 100%; object-fit: cover; }
+.login-avatar span{ font-size: 30px; opacity: 0.7; }
+
+.login-panel{
+  width: min(520px, 92vw);
+  margin: 0 auto;
+  padding: 36px;
+  border-radius: 40px;
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(40px);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  text-align: center;
+  color: white;
+}
+.login-panel.danger{ border-color: rgba(248, 113, 113, 0.35); }
+
+.login-panel-title{
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 18px;
+}
+.login-panel-title.danger{ color: rgba(248, 113, 113, 0.95); }
+
+.login-danger-hint{
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.60);
+  margin-bottom: 14px;
+  line-height: 1.4;
+}
+
+.login-input{
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  color: white;
+  outline: none;
+  font-size: 14px;
+  box-sizing: border-box;
+  margin-top: 10px;
+}
+.login-input:focus{ border-color: rgba(59, 130, 246, 0.55); }
+
+.login-input-row{ position: relative; margin-top: 10px; }
+
+.login-eye{
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.80);
+}
+.login-eye:hover{ border-color: rgba(59, 130, 246, 0.55); }
+
+.login-actions{ display: flex; gap: 10px; margin-top: 16px; }
+
+.login-btn{
+  padding: 12px 14px;
+  border-radius: 14px;
+  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+.login-btn:hover{ transform: translateY(-1px); }
+
+.login-btn.ghost{
+  flex: 1;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.60);
+}
+
+.login-btn.primary{
+  flex: 2;
+  background: var(--neon-blue);
+  border-color: rgba(59, 130, 246, 0.6);
+  color: white;
+  font-weight: 900;
+}
+
+.login-btn.danger{
+  flex: 2;
+  background: rgba(248, 113, 113, 0.15);
+  border-color: rgba(248, 113, 113, 0.55);
+  color: rgba(255, 255, 255, 0.95);
+  font-weight: 900;
+}
+
+.login-btn:disabled{ opacity: 0.65; cursor: not-allowed; transform: none; }
+
+.login-error{
+  margin-top: 14px;
+  color: #f87171;
+  font-size: 12px;
+  letter-spacing: 0.02em;
+}
+
+.login-link{
+  margin-top: 10px;
+  color: rgba(255, 255, 255, 0.60);
+  font-size: 12px;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+}
+.login-link:hover{ color: rgba(255, 255, 255, 0.85); }
+
+.login-hidden{ display: none; }
+
+/* Boot sci-fi (mantido — sem duplicar com orb-pulse) */
+@keyframes orbPulse{
+  0%{ transform: scale(1); opacity: .22; }
+  50%{ transform: scale(1.06); opacity: .32; }
+  100%{ transform: scale(1); opacity: .22; }
+}
+@keyframes glitchShift{
+  0%{ transform: translate(0,0); }
+  20%{ transform: translate(-1px, 0); }
+  40%{ transform: translate(1px, 0); }
+  60%{ transform: translate(-1px, 0); }
+  80%{ transform: translate(1px, 0); }
+  100%{ transform: translate(0,0); }
+}
+@keyframes scanMove{
+  0%{ background-position: 0 0; opacity: .16; }
+  100%{ background-position: 0 100px; opacity: .16; }
+}
+.boot-orb{
+  width: 320px;
+  height: 320px;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(59,130,246,.85) 0%, rgba(59,130,246,.15) 35%, transparent 70%);
+  filter: blur(10px);
+  margin: 0 auto;
+  animation: orbPulse 1.6s ease-in-out infinite;
+}
+.glitch{
+  position: relative;
+  display: inline-block;
+  letter-spacing: .28em;
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: clamp(56px, 8vw, 96px);
+  opacity: 0.22;
+  margin: 0;
+  color: white;
+}
+.glitch::before,
+.glitch::after{
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  opacity: .35;
+  animation: glitchShift 1.2s infinite;
+}
+.glitch::before{ transform: translate(-1px, 0); color: rgba(59,130,246,.65); }
+.glitch::after{ transform: translate(1px, 0); color: rgba(255,255,255,.55); }
+
+.boot-scanlines{
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9998;
+  background: linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.06) 50%);
+  background-size: 100% 4px;
+  animation: scanMove 2.0s linear infinite;
+  mix-blend-mode: overlay;
+}
+.boot-noise{
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9997;
+  opacity: .03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+}

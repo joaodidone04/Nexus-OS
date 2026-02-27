@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo } from "react";
 import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useNexus } from "../../context/NexusContext";
+import "./NexusStations.css";
 
 export default function NexusStations() {
   const navigate = useNavigate();

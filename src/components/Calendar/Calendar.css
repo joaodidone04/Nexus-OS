@@ -1,0 +1,117 @@
+/* ============================= */
+/* ===== CALENDAR (GLOBAL) ===== */
+/* ============================= */
+
+.calendar-root{
+  width: 100%;
+  max-width: 260px;
+  padding: 14px;
+  border-radius: 18px;
+
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  backdrop-filter: blur(24px);
+  box-shadow: 0 20px 50px -18px rgba(0,0,0,0.65);
+
+  user-select: none;
+}
+
+.calendar-root.is-popover{ width: 260px; }
+
+.calendar-header{
+  display: grid;
+  grid-template-columns: 24px 1fr 24px;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  padding: 0 2px;
+}
+
+.calendar-month{
+  text-align: center;
+  font-size: 9px;
+  letter-spacing: .28em;
+  color: rgba(255,255,255,0.88);
+}
+
+.calendar-nav{
+  width: 24px;
+  height: 24px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(0,0,0,0.18);
+  color: rgba(255,255,255,0.35);
+  cursor: pointer;
+  transition: all .18s ease;
+  font-size: 10px;
+  line-height: 1;
+}
+
+.calendar-nav:hover{
+  color: rgba(255,255,255,0.85);
+  border-color: rgba(255,255,255,0.14);
+  background: rgba(255,255,255,0.05);
+}
+
+.calendar-grid{
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  text-align: center;
+}
+
+.calendar-dow{
+  font-size: 8px;
+  color: rgba(255,255,255,0.22);
+  font-weight: 800;
+  padding: 2px 0 4px 0;
+}
+
+.calendar-empty{ height: 24px; }
+
+.calendar-day{
+  height: 24px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.06);
+  background: transparent;
+  color: rgba(255,255,255,0.40);
+  cursor: pointer;
+  font-size: 10px;
+  transition: transform .18s ease, background .18s ease, border-color .18s ease, color .18s ease;
+}
+
+.calendar-day:hover{
+  transform: scale(1.10);
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.80);
+}
+
+.calendar-day:active{ transform: scale(0.96); }
+
+.calendar-day.is-selected{
+  border-color: rgba(255,255,255,0.10);
+  color: white;
+  font-weight: 900;
+}
+
+.calendar-today{
+  width: 100%;
+  margin-top: 12px;
+  padding: 10px 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.02);
+  color: rgba(255,255,255,0.40);
+  font-size: 9px;
+  letter-spacing: .28em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all .18s ease;
+}
+
+.calendar-today:hover{
+  color: rgba(255,255,255,0.85);
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.12);
+}

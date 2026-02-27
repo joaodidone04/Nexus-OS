@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import "./TaskCard.css";
 
 const PRIORITY_LABELS = {
   normal: { label: "Normal", color: "#64748b" },

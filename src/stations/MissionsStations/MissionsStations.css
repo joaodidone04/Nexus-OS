@@ -1,0 +1,337 @@
+/* ================================== */
+/* ===== MISSIONS STATION (MS) ======= */
+/* ================================== */
+
+.ms-root{
+  position: fixed;
+  inset: 0;
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 18px;
+  padding: 18px;
+  overflow: hidden;
+}
+
+/* camada sutil por cima do fundo */
+.ms-root::before{
+  content:"";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at 50% 40%, rgba(59,130,246,0.10) 0%, rgba(0,0,0,0.0) 55%);
+  z-index: -1;
+}
+
+/* Sidebar */
+.ms-sidebar{
+  height: calc(100vh - 36px);
+  border-radius: 22px;
+  padding: 18px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* se tu usa "glass-premium", garante um fallback */
+.glass-premium{
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(40px);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+}
+
+.ms-side-title{
+  display:flex;
+  align-items:center;
+  justify-content: space-between;
+  font-size: 10px;
+  letter-spacing: .22em;
+  color: rgba(255,255,255,0.35);
+  text-transform: uppercase;
+}
+
+.ms-side-stations{
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ms-side-station{
+  height: 46px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.02);
+  color: rgba(255,255,255,0.35);
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: .18em;
+  font-size: 10px;
+  transition: all .2s ease;
+}
+
+.ms-side-station:hover{
+  background: rgba(255,255,255,0.04);
+  border-color: rgba(255,255,255,0.14);
+  color: rgba(255,255,255,0.7);
+}
+
+.ms-side-station.is-active{
+  color: rgba(255,255,255,0.92);
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.08) inset;
+}
+
+/* Profile card */
+.ms-profile{
+  border-radius: 18px;
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ms-profile-left{
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.ms-avatar{
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(255,255,255,0.04);
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+}
+
+.ms-avatar img{
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ms-avatar span{
+  font-size: 18px;
+  opacity: .7;
+}
+
+.ms-profile-name{
+  font-weight: 800;
+  color: rgba(255,255,255,0.92);
+  font-size: 13px;
+}
+
+.ms-profile-sub{
+  display: flex;
+  gap: 10px;
+  margin-top: 4px;
+  font-size: 11px;
+  color: rgba(255,255,255,0.40);
+}
+
+.ms-xpbar{
+  margin-top: 8px;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.06);
+  overflow: hidden;
+}
+
+.ms-xpbar-fill{
+  height: 100%;
+  border-radius: 999px;
+  background: rgba(168,85,247,0.9);
+  box-shadow: 0 0 12px rgba(168,85,247,0.35);
+}
+
+/* Botão ⚙ (sidebar e perfil) */
+.ms-gear{
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(0,0,0,0.20);
+  color: rgba(255,255,255,0.45);
+  cursor: pointer;
+  transition: all .18s ease;
+}
+.ms-gear:hover{
+  color: rgba(255,255,255,0.85);
+  background: rgba(255,255,255,0.05);
+  border-color: rgba(255,255,255,0.14);
+}
+
+.ms-calendar{
+  margin-top: auto;
+  border-radius: 18px;
+  padding: 10px;
+}
+
+/* Main */
+.ms-main{
+  height: calc(100vh - 36px);
+  border-radius: 22px;
+  overflow: hidden;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.ms-header{
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 6px 6px 0 6px;
+}
+
+.ms-header-kicker{
+  font-size: 10px;
+  letter-spacing: .42em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.30);
+  margin-bottom: 6px;
+}
+
+.ms-header-title-row{
+  display: flex;
+  align-items: baseline;
+  gap: 18px;
+}
+
+.ms-logo{
+  font-size: 48px;
+  letter-spacing: .22em;
+  color: rgba(255,255,255,0.92);
+}
+
+.ms-date{
+  font-size: 18px;
+  color: rgba(255,255,255,0.35);
+}
+
+.ms-new-mission{
+  height: 54px;
+  padding: 0 28px;
+  border-radius: 18px;
+  border: 1px solid rgba(168,85,247,0.35);
+  background: rgba(168,85,247,0.28);
+  color: rgba(255,255,255,0.92);
+  cursor: pointer;
+  font-weight: 900;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  transition: all .18s ease;
+  box-shadow: 0 0 24px rgba(168,85,247,0.16);
+}
+.ms-new-mission:hover{
+  background: rgba(168,85,247,0.38);
+  border-color: rgba(168,85,247,0.55);
+  transform: translateY(-1px);
+}
+
+/* Board */
+.ms-board{
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  overflow: hidden;
+}
+
+.ms-col{
+  border-radius: 26px;
+  padding: 16px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.ms-col-head{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.ms-col-title{
+  font-size: 12px;
+  letter-spacing: .22em;
+  color: rgba(255,255,255,0.45);
+  text-transform: uppercase;
+}
+
+.ms-col-count{
+  font-size: 12px;
+  color: rgba(255,255,255,0.25);
+}
+
+.ms-col-list{
+  overflow: auto;
+  padding-right: 6px;
+  min-height: 0;
+}
+
+/* Scrollbar discreto */
+.ms-col-list::-webkit-scrollbar{ width: 6px; }
+.ms-col-list::-webkit-scrollbar-thumb{
+  background: rgba(255,255,255,0.08);
+  border-radius: 999px;
+}
+.ms-col-list::-webkit-scrollbar-thumb:hover{
+  background: rgba(255,255,255,0.14);
+}
+
+/* Responsivo */
+@media (max-width: 1200px){
+  .ms-root{ grid-template-columns: 300px 1fr; }
+  .ms-logo{ font-size: 40px; }
+}
+@media (max-width: 980px){
+  .ms-root{ grid-template-columns: 1fr; }
+  .ms-sidebar{ height: auto; }
+  .ms-main{ height: auto; }
+  .ms-board{ grid-template-columns: 1fr; }
+}
+/* ================================== */
+/* ===== MISSIONS: HUB BUTTON ======= */
+/* ================================== */
+
+.ms-sidebar-top{
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.ms-back-hub{
+  height: 38px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(0,0,0,0.25);
+  color: rgba(255,255,255,0.80);
+  cursor: pointer;
+  font-size: 11px;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  transition: 0.2s ease;
+  backdrop-filter: blur(10px);
+}
+
+.ms-back-hub:hover{
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.18);
+  transform: translateY(-1px);
+}
+/* =========================================
+   HIDE GLOBAL TOPBAR INSIDE MISSIONS
+   (evita HUB duplicado e remove SAIR)
+   ========================================= */
+body.is-missions-screen .nx-topbar{
+  display: none !important;
+}

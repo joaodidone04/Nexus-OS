@@ -1,4 +1,5 @@
 import React, { useRef, useState } from "react";
+import "./ProfileEditorModal.css";
 
 const DEFAULT_AVATARS = ["👤", "🤖", "💠", "🚀", "⚡", "🧬"];
 

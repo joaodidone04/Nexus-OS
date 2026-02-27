@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { ICONS, BORDER_COLORS } from "../../styles/Constants";
 import ModalContainer from "../ModalContainer/ModalContainer";
+import "./NewTaskModal.css";
 
 const PRIORITIES = [    
   { id: "normal", label: "NORMAL", color: "#64748b" },

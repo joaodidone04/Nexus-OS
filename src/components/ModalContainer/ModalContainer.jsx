@@ -1,4 +1,5 @@
 import React from "react";
+import "./ModalContainer.css";
 
 export default function ModalContainer({ title, onClose, footer, children }) {
   return (
