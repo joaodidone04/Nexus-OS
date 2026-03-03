@@ -5,10 +5,7 @@ import { useNexus } from "./context/NexusContext";
 import LoginScreen from "./screens/LoginScreen/LoginScreen";
 import NexusStations from "./screens/NexusStations/NexusStations";
 import MissionsStation from "./stations/MissionsStations/MissionsStation";
-
-function FinanceStation() {
-  return <div style={{ padding: 40 }}>Finance Station</div>;
-}
+import FinanceStation from "./stations/FinanceStation/FinanceStations";
 
 function HealthStation() {
   return <div style={{ padding: 40 }}>Health Station</div>;
