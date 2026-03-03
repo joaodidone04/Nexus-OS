@@ -8,14 +8,20 @@ const PRIORITY_LABELS = {
   urgent: { label: "Urgente", color: "#ef4444", pulse: true },
 };
 
-export default function TaskCard({ task, onMove, onDelete, TaskStatus }) {
+export default function TaskCard({ task, onOpen, onMove, onDelete, TaskStatus }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const prio = PRIORITY_LABELS[task.priority] || PRIORITY_LABELS.normal;
 
+  const open = () => {
+    if (typeof onOpen === "function") onOpen(task);
+  };
+
   return (
-    <div
+    <button
+      type="button"
       className="taskcard glass"
       style={{ borderLeftColor: task.borderColor }}
+      onClick={open}
     >
       <div
         className="taskcard-glow"
@@ -102,9 +108,22 @@ export default function TaskCard({ task, onMove, onDelete, TaskStatus }) {
             <span className="taskcard-xp data-font">+{task.xp} XP</span>
           </div>
 
+          {/* log expand/collapse sem abrir modal */}
           <div
             className="taskcard-descwrap"
-            onClick={() => setIsExpanded((v) => !v)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsExpanded((v) => !v);
+            }}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                e.stopPropagation();
+                setIsExpanded((v) => !v);
+              }
+            }}
           >
             <p className={`taskcard-desc ${isExpanded ? "is-open" : ""}`}>
               {task.description}
@@ -127,9 +146,15 @@ export default function TaskCard({ task, onMove, onDelete, TaskStatus }) {
         </div>
       </div>
 
-      <div className="taskcard-actions">
+      {/* ações: não podem abrir modal */}
+      <div
+        className="taskcard-actions"
+        onClick={(e) => e.stopPropagation()}
+        onMouseDown={(e) => e.stopPropagation()}
+      >
         {task.status !== TaskStatus.TODO ? (
           <button
+            type="button"
             className="taskcard-actionlink tech-font"
             onClick={() => onMove(task.id, TaskStatus.TODO)}
           >
@@ -139,6 +164,7 @@ export default function TaskCard({ task, onMove, onDelete, TaskStatus }) {
 
         {task.status === TaskStatus.TODO ? (
           <button
+            type="button"
             className="taskcard-actionbtn tech-font"
             onClick={() => onMove(task.id, TaskStatus.IN_PROGRESS)}
             style={{
@@ -147,9 +173,7 @@ export default function TaskCard({ task, onMove, onDelete, TaskStatus }) {
               color: task.borderColor,
             }}
           >
-            <span className="taskcard-actionbtn-text">
-              Iniciar sequência
-            </span>
+            <span className="taskcard-actionbtn-text">Iniciar sequência</span>
             <div
               className="taskcard-actionbtn-fill"
               style={{ backgroundColor: task.borderColor + "22" }}
@@ -159,6 +183,7 @@ export default function TaskCard({ task, onMove, onDelete, TaskStatus }) {
 
         {task.status === TaskStatus.IN_PROGRESS ? (
           <button
+            type="button"
             className="taskcard-done tech-font"
             onClick={() => onMove(task.id, TaskStatus.DONE)}
           >
@@ -167,6 +192,7 @@ export default function TaskCard({ task, onMove, onDelete, TaskStatus }) {
         ) : null}
 
         <button
+          type="button"
           className="taskcard-trash"
           title="Eliminar Registro"
           onClick={() => onDelete(task.id)}
@@ -174,6 +200,6 @@ export default function TaskCard({ task, onMove, onDelete, TaskStatus }) {
           🗑️
         </button>
       </div>
-    </div>
+    </button>
   );
 }

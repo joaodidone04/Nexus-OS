@@ -192,3 +192,88 @@
   transition: transform .12s ease, background .18s ease, filter .18s ease;
 }
 .nx-icon-btn:hover{ transform: scale(1.06); background: rgba(255,255,255,0.05); }
+
+/* =========================
+   TIMEPICKER CUSTOM
+   ========================= */
+
+.nx-timepicker{
+  display:flex;
+  align-items:center;
+  gap: 10px;
+}
+
+.nx-combo{
+  position: relative;
+  flex: 1;
+}
+
+.nx-combo-btn{
+  width: 100%;
+  height: 46px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding: 0 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(59,130,246,0.18);
+  background: rgba(0,0,0,0.55);
+  color: rgba(255,255,255,0.92);
+  cursor: pointer;
+}
+
+.nx-combo.is-open .nx-combo-btn{
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent);
+}
+
+.nx-combo-pop{
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  max-height: 220px;
+  overflow: auto;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(10,10,15,0.95);
+  backdrop-filter: blur(18px);
+  box-shadow: 0 25px 60px rgba(0,0,0,0.55);
+  padding: 6px;
+}
+
+.nx-combo-opt{
+  width: 100%;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: rgba(255,255,255,0.85);
+  cursor: pointer;
+  text-align: left;
+  padding: 0 10px;
+}
+
+.nx-combo-opt:hover{
+  background: rgba(255,255,255,0.06);
+}
+
+.nx-combo-opt.is-active{
+  background: color-mix(in srgb, var(--accent) 30%, transparent);
+  border-color: var(--accent);
+}
+
+.nx-combo-pop::-webkit-scrollbar{
+  width: 8px;
+}
+
+.nx-combo-pop::-webkit-scrollbar-thumb{
+  background: rgba(255,255,255,0.10);
+  border-radius: 999px;
+}
+
+.nx-tsep{
+  opacity: .55;
+  user-select:none;
+}

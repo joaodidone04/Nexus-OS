@@ -1,12 +1,14 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useNexus } from "../../context/NexusContext.jsx";
+import { readModulesLocal, writeModulesLocal } from "../../services/modulesStorage.js";
 import TaskCard from "../../components/Taskcard/TaskCard.jsx";
 import Calendar from "../../components/Calendar/Calendar.jsx";
 import NewTaskModal from "../../components/NewTask/NewTaskModal.jsx";
 import ModulesEditorModal from "../../components/Modules/ModulesEditorModal.jsx";
-import { readModulesLocal, writeModulesLocal } from "../../services/modulesStorage.js";
+import TaskModal from "../../components/TaskModal/TaskModal.jsx";
 import "./MissionsStations.css";
+import "./../../components/ProfileEditor/ProfileEditorModal.jsx";
 
 const TaskStatus = {
   TODO: "TODO",
@@ -30,6 +32,9 @@ const DEFAULT_TASKS = [
       { id: "o1", text: "Board 3 colunas" },
       { id: "o2", text: "Persistência local" },
     ],
+    // ✅ já deixa compatível com o modal novo:
+    subtasks: [{ id: "s1", text: "Exemplo subtask", done: false }],
+    comments: [],
     date: new Date().toISOString().split("T")[0],
     recurrence: { type: "none" },
     moduleId: "CASA",
@@ -75,16 +80,13 @@ export default function MissionsStation() {
   }, []);
 
   const navigate = useNavigate();
-const location = useLocation();
+  const location = useLocation();
 
-const goHub = () => {
-  // se tu passou "from" ao navegar pra Missions, volta pro from
-  const from = location.state?.from;
-  if (from) return navigate(from, { replace: true });
-
-  // senão, vai direto pro HUB
-  navigate("/stations", { replace: true });
-};
+  const goHub = () => {
+    const from = location.state?.from;
+    if (from) return navigate(from, { replace: true });
+    navigate("/stations", { replace: true });
+  };
 
   const [modules, setModules] = useState(() => readModulesLocal(profileId) ?? []);
   const [activeModuleId, setActiveModuleId] = useState(() => {
@@ -102,6 +104,11 @@ const goHub = () => {
   );
 
   const [isNewOpen, setIsNewOpen] = useState(false);
+
+  // ✅ MODAL TASK
+  const [openTask, setOpenTask] = useState(null);
+  const handleOpenTask = (task) => setOpenTask(task);
+  const handleCloseTask = () => setOpenTask(null);
 
   const normalizedModules = useMemo(() => {
     if (Array.isArray(modules) && modules.length > 0) return modules;
@@ -156,6 +163,7 @@ const goHub = () => {
 
   const deleteTask = (id) => {
     setTasks((prev) => prev.filter((t) => t.id !== id));
+    setOpenTask((cur) => (cur?.id === id ? null : cur));
   };
 
   const handleSaveNewTask = (data) => {
@@ -173,6 +181,9 @@ const goHub = () => {
       time: data.time || undefined,
       borderColor: data.borderColor || currentStation.color,
       objectives: Array.isArray(data.objectives) ? data.objectives : [],
+      // ✅ já nasce pronto pro modal:
+      subtasks: Array.isArray(data.subtasks) ? data.subtasks : [],
+      comments: Array.isArray(data.comments) ? data.comments : [],
       date: data.date || selectedDate,
       recurrence: data.recurrence || { type: "none" },
       moduleId: activeModuleId,
@@ -192,7 +203,9 @@ const goHub = () => {
   );
 
   const tasksForModule = useMemo(() => {
-    return (tasks || []).filter((t) => !t.moduleId || t.moduleId === activeModuleId);
+    return (tasks || []).filter(
+      (t) => !t.moduleId || t.moduleId === activeModuleId
+    );
   }, [tasks, activeModuleId]);
 
   const byStatus = (status) => tasksForModule.filter((t) => t.status === status);
@@ -235,7 +248,9 @@ const goHub = () => {
           {normalizedModules.map((m) => (
             <button
               key={m.id}
-              className={`ms-side-station ${activeModuleId === m.id ? "is-active" : ""}`}
+              className={`ms-side-station ${
+                activeModuleId === m.id ? "is-active" : ""
+              }`}
               onClick={() => setActiveModuleId(m.id)}
               type="button"
               style={
@@ -300,7 +315,10 @@ const goHub = () => {
               <div className="ms-date data-font">{headerDate}</div>
             </div>
 
-            <div className="ms-header-kicker tech-font" style={{ marginTop: 6, opacity: 0.7 }}>
+            <div
+              className="ms-header-kicker tech-font"
+              style={{ marginTop: 6, opacity: 0.7 }}
+            >
               MÓDULO ATIVO:{" "}
               <span style={{ color: currentModuleMeta.color }}>
                 {currentModuleMeta.name}
@@ -325,7 +343,9 @@ const goHub = () => {
             <div key={col.id} className="ms-col glass-premium">
               <div className="ms-col-head">
                 <div className="ms-col-title tech-font">{col.title}</div>
-                <div className="ms-col-count data-font">{byStatus(col.id).length}</div>
+                <div className="ms-col-count data-font">
+                  {byStatus(col.id).length}
+                </div>
               </div>
 
               <div className="ms-col-list">
@@ -333,6 +353,7 @@ const goHub = () => {
                   <TaskCard
                     key={task.id}
                     task={task}
+                    onOpen={handleOpenTask}
                     onMove={moveTask}
                     onDelete={deleteTask}
                     TaskStatus={TaskStatus}
@@ -372,6 +393,20 @@ const goHub = () => {
 
             setModulesOpen(false);
           }}
+        />
+      )}
+
+      {openTask && (
+        <TaskModal
+          task={openTask}
+          onClose={handleCloseTask}
+          onSave={(updatedTask) => {
+            setTasks((prev) =>
+              prev.map((t) => (t.id === updatedTask.id ? updatedTask : t))
+            );
+            setOpenTask(updatedTask);
+          }}
+          onDelete={(id) => deleteTask(id)}
         />
       )}
     </div>

@@ -1,0 +1,224 @@
+.tm-root{ display: flex; flex-direction: column; gap: 16px; }
+
+/* Header */
+.tm-header{
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+
+.tm-icon{
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.04);
+  display: grid;
+  place-items: center;
+  font-size: 26px;
+}
+
+.tm-head{ flex: 1; display: flex; flex-direction: column; gap: 8px; }
+
+.tm-title{
+  width: 100%;
+  border-radius: 12px;
+  padding: 12px 12px;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(0,0,0,0.35);
+  color: rgba(255,255,255,0.92);
+  outline: none;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.tm-meta{ display: flex; gap: 10px; flex-wrap: wrap; }
+
+.tm-pill{
+  font-size: 10px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.70);
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(255,255,255,0.03);
+  padding: 6px 10px;
+  border-radius: 999px;
+}
+
+/* ✅ GRID de layout: descrição à esquerda, subtasks à direita, comentários embaixo */
+.tm-grid{
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 1.35fr 1fr;
+  grid-template-areas:
+    "desc subtasks"
+    "comments comments";
+  align-items: start;
+}
+
+.tm-desc{ grid-area: desc; }
+.tm-subtasks{ grid-area: subtasks; }
+.tm-comments{ grid-area: comments; }
+
+/* Cards */
+.tm-block{
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.03);
+  padding: 12px;
+}
+
+.tm-label{
+  font-size: 10px;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: rgba(147,197,253,0.70);
+}
+
+.tm-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+/* Inputs */
+.tm-textarea{
+  width: 100%;
+  border-radius: 12px;
+  padding: 12px 12px;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(0,0,0,0.35);
+  color: rgba(255,255,255,0.92);
+  outline: none;
+  box-sizing: border-box;
+  min-height: 170px;
+  resize: vertical;
+}
+
+.tm-add{
+  height: 38px;
+  padding: 0 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(255,255,255,0.05);
+  color: rgba(255,255,255,0.88);
+  cursor: pointer;
+  font-size: 10px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.tm-add:hover{ background: rgba(255,255,255,0.10); }
+
+.tm-list{ display: flex; flex-direction: column; gap: 10px; }
+.tm-empty{ color: rgba(255,255,255,0.45); font-size: 12px; }
+
+/* ✅ aqui corrige “a parte da subtask”: altura útil + scroll quando crescer */
+.tm-list-scroll{
+  max-height: 260px;
+  overflow: auto;
+  padding-right: 6px;
+}
+
+.tm-list-scroll::-webkit-scrollbar{ width: 6px; }
+.tm-list-scroll::-webkit-scrollbar-thumb{
+  background: rgba(255,255,255,0.10);
+  border-radius: 999px;
+}
+.tm-list-scroll::-webkit-scrollbar-thumb:hover{
+  background: rgba(255,255,255,0.16);
+}
+
+.tm-subtask{
+  display: grid;
+  grid-template-columns: 38px 1fr 38px;
+  gap: 10px;
+  align-items: center;
+}
+
+.tm-check{
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(0,0,0,0.30);
+  color: rgba(255,255,255,0.85);
+  cursor: pointer;
+}
+.tm-check.is-on{
+  background: rgba(59,130,246,0.20);
+  border-color: rgba(59,130,246,0.45);
+}
+
+.tm-subtask-input{
+  width: 100%;
+  border-radius: 12px;
+  padding: 12px 12px;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(0,0,0,0.35);
+  color: rgba(255,255,255,0.92);
+  outline: none;
+  box-sizing: border-box;
+}
+
+.tm-del{
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(0,0,0,0.30);
+  color: rgba(255,255,255,0.70);
+  cursor: pointer;
+}
+.tm-del:hover{
+  color: rgba(248,113,113,.95);
+  border-color: rgba(248,113,113,.40);
+}
+
+/* Comments */
+.tm-commentbox{
+  display:flex;
+  gap: 10px;
+  align-items:center;
+  margin-bottom: 10px;
+}
+
+.tm-comment-input{
+  flex: 1;
+  border-radius: 12px;
+  padding: 12px 12px;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(0,0,0,0.35);
+  color: rgba(255,255,255,0.92);
+  outline: none;
+  box-sizing: border-box;
+}
+
+.tm-comment{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(0,0,0,0.20);
+}
+
+.tm-comment-text{ color: rgba(255,255,255,0.85); font-size: 13px; }
+.tm-comment-actions{ display:flex; align-items:center; gap: 10px; }
+.tm-comment-at{ font-size: 11px; color: rgba(255,255,255,0.40); }
+
+/* ✅ Responsivo: vira 1 coluna */
+@media (max-width: 900px){
+  .tm-grid{
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "desc"
+      "subtasks"
+      "comments";
+  }
+  .tm-list-scroll{ max-height: 220px; }
+}
