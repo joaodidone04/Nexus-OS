@@ -1,16 +1,10 @@
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import ModalContainer from "../ModalContainer/ModalContainer";
 import "./ModulesEditorModal.css";
 
 const DEFAULT_COLORS = [
-  "#7c3aed",
-  "#3b82f6",
-  "#f97316",
-  "#22c55e",
-  "#ef4444",
-  "#eab308",
-  "#06b6d4",
-  "#a855f7",
+  "#7c3aed", "#3b82f6", "#f97316", "#22c55e",
+  "#ef4444", "#eab308", "#06b6d4", "#a855f7",
 ];
 
 function normalizeId(str) {
@@ -23,53 +17,48 @@ function normalizeId(str) {
 
 export default function ModulesEditorModal({ modules, onClose, onSave }) {
   const initial = Array.isArray(modules) ? modules : [];
-  const [list, setList] = useState(() => initial.map((m) => ({ ...m })));
+
+  // FIX: cada item recebe um _key interno estável para o map/update —
+  // sem isso, editar o campo ID fazia o item "sumir" da lista porque
+  // usávamos m.id (que muda) como identificador de busca no updateItem.
+  const [list, setList] = useState(() =>
+    initial.map((m, i) => ({ ...m, _key: m.id || `mod_${i}` }))
+  );
 
   const canSave = useMemo(() => {
-    if (!Array.isArray(list) || list.length === 0) return false;
-    // precisa ter id+name
+    if (!list.length) return false;
     for (const m of list) {
-      if (!String(m.id || "").trim()) return false;
-      if (!String(m.name || "").trim()) return false;
+      if (!String(m.id    || "").trim()) return false;
+      if (!String(m.name  || "").trim()) return false;
       if (!String(m.color || "").trim()) return false;
     }
-    // ids únicos
-    const ids = list.map((m) => m.id);
-    return new Set(ids).size === ids.length;
+    const ids = list.map(m => m.id);
+    return new Set(ids).size === ids.length; // ids únicos
   }, [list]);
 
-  const updateItem = (id, patch) => {
-    setList((prev) => prev.map((m) => (m.id === id ? { ...m, ...patch } : m)));
+  // FIX: busca por _key (estável) em vez de id (mutável pelo usuário)
+  const updateItem = (_key, patch) => {
+    setList(prev => prev.map(m => m._key === _key ? { ...m, ...patch } : m));
   };
 
   const addModule = () => {
     const base = "NOVO_MODULO";
+    const existing = new Set(list.map(m => m.id));
     let idx = 1;
-    let newId = `${base}_${idx}`;
-    const existing = new Set(list.map((m) => m.id));
-
-    while (existing.has(newId)) {
-      idx += 1;
-      newId = `${base}_${idx}`;
-    }
-
-    setList((prev) => [
-      ...prev,
-      {
-        id: newId,
-        name: `NOVO MÓDULO ${idx}`,
-        color: "#7c3aed",
-      },
-    ]);
+    while (existing.has(`${base}_${idx}`)) idx++;
+    const newId = `${base}_${idx}`;
+    const _key  = `_new_${Date.now()}`;
+    setList(prev => [...prev, { id: newId, name: `NOVO MÓDULO ${idx}`, color: "#7c3aed", _key }]);
   };
 
-  const removeModule = (id) => {
-    setList((prev) => prev.filter((m) => m.id !== id));
+  const removeModule = (_key) => {
+    setList(prev => prev.filter(m => m._key !== _key));
   };
 
   const handleSave = () => {
     if (!canSave) return;
-    onSave(list);
+    // Remove _key antes de salvar — não deve vazar para o estado da app
+    onSave(list.map(({ _key, ...rest }) => rest));
   };
 
   const footer = (
@@ -77,12 +66,11 @@ export default function ModulesEditorModal({ modules, onClose, onSave }) {
       <button onClick={onClose} className="nx-modal-link tech-font" type="button">
         CANCELAR
       </button>
-
       <button
         onClick={handleSave}
         className="nx-modal-confirm tech-font"
         type="button"
-        style={{ opacity: canSave ? 1 : 0.5, pointerEvents: canSave ? "auto" : "none" }}
+        disabled={!canSave}
       >
         SALVAR MÓDULOS
       </button>
@@ -100,16 +88,15 @@ export default function ModulesEditorModal({ modules, onClose, onSave }) {
 
         <div className="nx-modules-list">
           {list.map((m) => (
-            <div key={m.id} className="nx-mod-row glass">
+            // FIX: key estável via _key, não via m.id
+            <div key={m._key} className="nx-mod-row glass">
+
               <div className="nx-mod-col">
                 <div className="nx-mod-label tech-font">ID</div>
                 <input
                   className="nx-mod-input tech-font"
                   value={m.id}
-                  onChange={(e) => {
-                    const next = normalizeId(e.target.value);
-                    updateItem(m.id, { id: next });
-                  }}
+                  onChange={(e) => updateItem(m._key, { id: normalizeId(e.target.value) })}
                   placeholder="TRABALHO"
                 />
               </div>
@@ -119,31 +106,29 @@ export default function ModulesEditorModal({ modules, onClose, onSave }) {
                 <input
                   className="nx-mod-input tech-font"
                   value={m.name}
-                  onChange={(e) => updateItem(m.id, { name: e.target.value.toUpperCase() })}
+                  onChange={(e) => updateItem(m._key, { name: e.target.value.toUpperCase() })}
                   placeholder="TRABALHO"
                 />
               </div>
 
               <div className="nx-mod-col">
                 <div className="nx-mod-label tech-font">COR</div>
-
                 <div className="nx-mod-colors">
                   {DEFAULT_COLORS.map((c) => (
                     <button
                       key={c}
                       type="button"
-                      className={`nx-color ${m.color === c ? "is-active" : ""}`}
-                      onClick={() => updateItem(m.id, { color: c })}
+                      className={`nx-color${m.color === c ? " is-active" : ""}`}
+                      onClick={() => updateItem(m._key, { color: c })}
                       style={{ backgroundColor: c }}
                       title={c}
                     />
                   ))}
-
                   <input
                     className="nx-mod-colorinput"
                     type="color"
                     value={m.color}
-                    onChange={(e) => updateItem(m.id, { color: e.target.value })}
+                    onChange={(e) => updateItem(m._key, { color: e.target.value })}
                     title="Escolher cor"
                   />
                 </div>
@@ -152,11 +137,12 @@ export default function ModulesEditorModal({ modules, onClose, onSave }) {
               <button
                 type="button"
                 className="nx-mod-del"
-                onClick={() => removeModule(m.id)}
+                onClick={() => removeModule(m._key)}
                 title="Remover módulo"
               >
                 ✕
               </button>
+
             </div>
           ))}
         </div>

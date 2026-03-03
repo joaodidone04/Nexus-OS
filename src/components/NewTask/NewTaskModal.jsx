@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useRef, useEffect } from "react";
+import { useMemo, useState } from "react";
 import { ICONS, BORDER_COLORS } from "../../styles/Constants";
 import ModalContainer from "../ModalContainer/ModalContainer";
 import "./NewTaskModal.css";
@@ -10,137 +10,47 @@ const PRIORITIES = [
   { id: "urgent",    label: "URGENTE",    color: "#ef4444" },
 ];
 
-const WEEK_DAYS = [
-  { label: "D", value: 0 },
-  { label: "S", value: 1 },
-  { label: "T", value: 2 },
-  { label: "Q", value: 3 },
-  { label: "Q", value: 4 },
-  { label: "S", value: 5 },
-  { label: "S", value: 6 },
+const RECURRENCE_TYPES = [
+  { id: "none",    label: "ÚNICA"   },
+  { id: "weekly",  label: "SEMANAL" },
+  { id: "monthly", label: "MENSAL"  },
 ];
 
-/* ── Custom combo-box used by TimePicker ── */
-function Combo({ value, options, placeholder, accent, onChange }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef(null);
+const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, "0"));
+const MINS  = ["00","05","10","15","20","25","30","35","40","45","50","55"];
 
-  // Close on outside click
-  useEffect(() => {
-    const handler = (e) => {
-      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
-
-  return (
-    <div
-      className={`nx-combo${open ? " is-open" : ""}`}
-      ref={ref}
-      style={{ "--accent": accent }}
-    >
-      <button
-        type="button"
-        className="nx-combo-btn tech-font"
-        onClick={() => setOpen((o) => !o)}
-      >
-        <span>{value || placeholder}</span>
-        <span style={{ opacity: 0.45, fontSize: 10 }}>▾</span>
-      </button>
-
-      {open && (
-        <div className="nx-combo-pop">
-          {options.map((opt) => (
-            <button
-              key={opt}
-              type="button"
-              className={`nx-combo-opt tech-font${value === opt ? " is-active" : ""}`}
-              onClick={() => { onChange(opt); setOpen(false); }}
-            >
-              {opt}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-/* ── TimePicker ── */
-function TimePicker({ value, onChange, accent }) {
-  const [h = "", m = ""] = (value || "").split(":");
-
-  const hours = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, "0"));
-  const mins  = ["00","05","10","15","20","25","30","35","40","45","50","55"];
-
-  const setTime = (hh, mm) => {
-    if (!hh || !mm) return onChange("");
-    onChange(`${hh}:${mm}`);
-  };
-
-  return (
-    <div className="nx-field">
-      <label className="nx-label tech-font">HORÁRIO OPERACIONAL</label>
-      <div className="nx-timepicker">
-        <Combo
-          value={h}
-          options={hours}
-          placeholder="--"
-          accent={accent}
-          onChange={(hh) => setTime(hh, m)}
-        />
-        <span className="nx-tsep tech-font">:</span>
-        <Combo
-          value={m}
-          options={mins}
-          placeholder="--"
-          accent={accent}
-          onChange={(mm) => setTime(h, mm)}
-        />
-      </div>
-    </div>
-  );
-}
-
-/* ── Main Modal ── */
 export default function NewTaskModal({ currentModule, onClose, onSave, selectedDate }) {
-  const [title,       setTitle]       = useState("");
-  const [description, setDescription] = useState("");
-  const [objectives,  setObjectives]  = useState([]);
-  const [objInput,    setObjInput]    = useState("");
+  const [title,          setTitle]          = useState("");
+  const [description,    setDescription]    = useState("");
+  const [objectives,     setObjectives]     = useState([]);
+  const [objInput,       setObjInput]       = useState("");
   const [selectedIcon,   setSelectedIcon]   = useState("📅");
   const [selectedBorder, setSelectedBorder] = useState("default");
-  const [priority,  setPriority]  = useState("normal");
-  const [time,      setTime]      = useState("");
+  const [priority,       setPriority]       = useState("normal");
+  const [timeH,          setTimeH]          = useState("");
+  const [timeM,          setTimeM]          = useState("");
   const [recurrenceType, setRecurrenceType] = useState("none");
-  const [recurrenceDays, setRecurrenceDays] = useState([]);
+
+  const timeValue = timeH && timeM ? `${timeH}:${timeM}` : undefined;
 
   const borderColor = useMemo(() => {
     if (selectedBorder === "default") return currentModule.color;
-    return BORDER_COLORS.find((b) => b.id === selectedBorder)?.color || currentModule.color;
+    return BORDER_COLORS.find(b => b.id === selectedBorder)?.color || currentModule.color;
   }, [selectedBorder, currentModule.color]);
-
-  const toggleRecurrenceDay = (day) =>
-    setRecurrenceDays((prev) =>
-      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
-    );
 
   const addObjective = () => {
     const text = objInput.trim();
     if (!text) return;
-    const id = (typeof crypto !== "undefined" && crypto.randomUUID?.()) || String(Date.now());
-    setObjectives((prev) => [...prev, { id, text }]);
+    const id = crypto?.randomUUID?.() || String(Date.now());
+    setObjectives(prev => [...prev, { id, text }]);
     setObjInput("");
   };
 
   const removeObjective = (id) =>
-    setObjectives((prev) => prev.filter((o) => o.id !== id));
+    setObjectives(prev => prev.filter(o => o.id !== id));
 
   const handleSave = () => {
     if (!title.trim()) return;
-    const recurrence = { type: recurrenceType };
-    if (recurrenceType === "weekly") recurrence.daysOfWeek = recurrenceDays;
     onSave({
       title:       title.trim(),
       description: description.trim(),
@@ -148,9 +58,9 @@ export default function NewTaskModal({ currentModule, onClose, onSave, selectedD
       icon:        selectedIcon,
       borderColor,
       date:        selectedDate,
-      time:        time || undefined,
+      time:        timeValue,
       priority,
-      recurrence,
+      recurrence:  { type: recurrenceType },
     });
   };
 
@@ -163,6 +73,7 @@ export default function NewTaskModal({ currentModule, onClose, onSave, selectedD
         onClick={handleSave}
         className="nx-modal-confirm tech-font"
         type="button"
+        disabled={!title.trim()}
         style={{ backgroundColor: currentModule.color }}
       >
         CONFIRMAR MISSÃO
@@ -171,11 +82,7 @@ export default function NewTaskModal({ currentModule, onClose, onSave, selectedD
   );
 
   return (
-    <ModalContainer
-      title={`CRIAR MISSÃO: ${currentModule.name}`}
-      onClose={onClose}
-      footer={footer}
-    >
+    <ModalContainer title={`CRIAR MISSÃO: ${currentModule.name}`} onClose={onClose} footer={footer}>
       <div className="nx-form">
 
         {/* Título */}
@@ -183,7 +90,8 @@ export default function NewTaskModal({ currentModule, onClose, onSave, selectedD
           <label className="nx-label tech-font">OBJETIVO PRINCIPAL</label>
           <input
             value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            onChange={e => setTitle(e.target.value)}
+            onKeyDown={e => { if (e.key === "Enter" && title.trim()) handleSave(); }}
             placeholder="EX: SINCRONIZAR NÚCLEO DE DADOS"
             className="nx-input tech-font"
             autoFocus
@@ -195,23 +103,24 @@ export default function NewTaskModal({ currentModule, onClose, onSave, selectedD
           <label className="nx-label tech-font">DADOS ADICIONAIS</label>
           <textarea
             value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            onChange={e => setDescription(e.target.value)}
             placeholder="DETALHAMENTO DA OPERAÇÃO..."
             className="nx-textarea data-font"
           />
         </div>
 
-        {/* Prioridade + TimePicker */}
-        <div className="nx-grid-2">
+        {/* Prioridade + Horário + Recorrência */}
+        <div className="nx-grid-3">
+
           <div className="nx-field">
             <label className="nx-label tech-font">PRIORIDADE</label>
             <div className="nx-priority-grid">
-              {PRIORITIES.map((p) => (
+              {PRIORITIES.map(p => (
                 <button
                   key={p.id}
                   type="button"
                   onClick={() => setPriority(p.id)}
-                  className={`nx-chip tech-font${priority === p.id ? " is-active" : ""}`}
+                  className="nx-chip tech-font"
                   style={{
                     borderColor:     priority === p.id ? p.color : "rgba(255,255,255,0.06)",
                     backgroundColor: priority === p.id ? p.color + "33" : "transparent",
@@ -224,55 +133,49 @@ export default function NewTaskModal({ currentModule, onClose, onSave, selectedD
             </div>
           </div>
 
-          <TimePicker value={time} onChange={setTime} accent={currentModule.color} />
-        </div>
-
-        {/* Recorrência */}
-        <div className="nx-recurrence">
-          <label className="nx-label tech-font">RECORRÊNCIA SINÁPTICA</label>
-          <div className="nx-recurrence-row">
-            {[
-              { id: "none",    label: "ÚNICA"   },
-              { id: "weekly",  label: "SEMANAL" },
-              { id: "monthly", label: "MENSAL"  },
-            ].map((t) => (
-              <button
-                key={t.id}
-                type="button"
-                onClick={() => setRecurrenceType(t.id)}
-                className={`nx-recur-btn tech-font${recurrenceType === t.id ? " is-active" : ""}`}
-                style={{
-                  backgroundColor: recurrenceType === t.id ? currentModule.color + "33" : undefined,
-                  borderColor:     recurrenceType === t.id ? currentModule.color : "rgba(255,255,255,0.06)",
-                }}
-              >
-                {t.label}
-              </button>
-            ))}
+          <div className="nx-field">
+            <label className="nx-label tech-font">HORÁRIO</label>
+            <div className="nx-time-row">
+              <select className="nx-select tech-font" value={timeH} onChange={e => setTimeH(e.target.value)}>
+                <option value="">--</option>
+                {HOURS.map(h => <option key={h} value={h}>{h}</option>)}
+              </select>
+              <span className="nx-time-sep">:</span>
+              <select className="nx-select tech-font" value={timeM} onChange={e => setTimeM(e.target.value)}>
+                <option value="">--</option>
+                {MINS.map(m => <option key={m} value={m}>{m}</option>)}
+              </select>
+            </div>
           </div>
 
-          {recurrenceType === "weekly" && (
-            <div className="nx-weekdays">
-              {WEEK_DAYS.map((d) => (
+          <div className="nx-field">
+            <label className="nx-label tech-font">RECORRÊNCIA</label>
+            <div className="nx-recur-row">
+              {RECURRENCE_TYPES.map(t => (
                 <button
-                  key={d.value}
+                  key={t.id}
                   type="button"
-                  onClick={() => toggleRecurrenceDay(d.value)}
-                  className={`nx-day tech-font${recurrenceDays.includes(d.value) ? " is-on" : ""}`}
+                  onClick={() => setRecurrenceType(t.id)}
+                  className="nx-recur-chip tech-font"
                   style={{
-                    backgroundColor: recurrenceDays.includes(d.value)
-                      ? currentModule.color + "55"
-                      : "rgba(255,255,255,0.03)",
-                    borderColor: recurrenceDays.includes(d.value)
-                      ? currentModule.color
-                      : "rgba(255,255,255,0.08)",
+                    borderColor:     recurrenceType === t.id ? currentModule.color : "rgba(255,255,255,0.06)",
+                    backgroundColor: recurrenceType === t.id ? currentModule.color + "28" : "transparent",
+                    color:           recurrenceType === t.id ? "rgba(255,255,255,0.92)" : "rgba(255,255,255,0.40)",
                   }}
                 >
-                  {d.label}
+                  {t.label}
                 </button>
               ))}
             </div>
-          )}
+            {recurrenceType !== "none" && (
+              <div className="nx-recur-hint data-font">
+                {recurrenceType === "weekly"
+                  ? "Gera 8 semanas a partir da data selecionada"
+                  : "Gera 6 meses a partir da data selecionada"}
+              </div>
+            )}
+          </div>
+
         </div>
 
         {/* Objetivos */}
@@ -281,8 +184,8 @@ export default function NewTaskModal({ currentModule, onClose, onSave, selectedD
           <div className="nx-obj-row">
             <input
               value={objInput}
-              onChange={(e) => setObjInput(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter") addObjective(); }}
+              onChange={e => setObjInput(e.target.value)}
+              onKeyDown={e => { if (e.key === "Enter") addObjective(); }}
               placeholder="EX: CRIAR 3 COLUNAS"
               className="nx-input tech-font"
             />
@@ -293,12 +196,10 @@ export default function NewTaskModal({ currentModule, onClose, onSave, selectedD
 
           {objectives.length > 0 && (
             <div className="nx-obj-list">
-              {objectives.map((o) => (
+              {objectives.map(o => (
                 <div key={o.id} className="nx-obj-item">
                   <span className="data-font">{o.text}</span>
-                  <button type="button" className="nx-obj-del" onClick={() => removeObjective(o.id)}>
-                    ✕
-                  </button>
+                  <button type="button" className="nx-obj-del" onClick={() => removeObjective(o.id)}>✕</button>
                 </div>
               ))}
             </div>
@@ -312,7 +213,7 @@ export default function NewTaskModal({ currentModule, onClose, onSave, selectedD
             <div className="nx-border-grid">
               <button
                 type="button"
-                className={`nx-border-chip tech-font${selectedBorder === "default" ? " is-active" : ""}`}
+                className="nx-border-chip tech-font"
                 onClick={() => setSelectedBorder("default")}
                 style={{
                   borderColor:     selectedBorder === "default" ? currentModule.color : "rgba(255,255,255,0.06)",
@@ -322,12 +223,11 @@ export default function NewTaskModal({ currentModule, onClose, onSave, selectedD
                 <span className="nx-swatch" style={{ backgroundColor: currentModule.color }} />
                 PADRÃO
               </button>
-
-              {BORDER_COLORS.map((b) => (
+              {BORDER_COLORS.filter(b => b.id !== "default").map(b => (
                 <button
                   key={b.id}
                   type="button"
-                  className={`nx-border-chip tech-font${selectedBorder === b.id ? " is-active" : ""}`}
+                  className="nx-border-chip tech-font"
                   onClick={() => setSelectedBorder(b.id)}
                   style={{
                     borderColor:     selectedBorder === b.id ? b.color : "rgba(255,255,255,0.06)",
@@ -344,11 +244,11 @@ export default function NewTaskModal({ currentModule, onClose, onSave, selectedD
           <div className="nx-field">
             <label className="nx-label tech-font">ÍCONE DA MISSÃO</label>
             <div className="nx-icons">
-              {ICONS.map((icon) => (
+              {ICONS.map(icon => (
                 <button
                   key={icon}
                   type="button"
-                  className={`nx-icon-btn${selectedIcon === icon ? " is-active" : ""}`}
+                  className="nx-icon-btn"
                   onClick={() => setSelectedIcon(icon)}
                   style={{
                     borderColor:     selectedIcon === icon ? currentModule.color : "transparent",

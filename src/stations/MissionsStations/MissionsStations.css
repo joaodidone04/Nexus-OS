@@ -1,386 +1,390 @@
-/* ================================== */
-/* ===== MISSIONS STATION (MS) ======= */
-/* ================================== */
+/* ══════════════════════════════════════════════
+   NΞXUS — MISSIONS STATION
+   ══════════════════════════════════════════════ */
 
-.ms-root{
-  /* ✅ mantém full-screen, mas permite scroll interno quando necessário */
+/* position:fixed garante tela cheia sobre o layout pai (topbar do app) */
+.ms-root {
   position: fixed;
   inset: 0;
-
   display: grid;
-  grid-template-columns: 340px 1fr;
-  gap: 18px;
-  padding: 18px;
-
-  /* ✅ CRÍTICO: não “corta” o layout */
+  grid-template-columns: 260px 1fr;
   overflow: hidden;
-  min-height: 0; /* importante p/ filhos com overflow funcionarem */
+  background: #08080d;
+  font-family: inherit;
+  z-index: 10;
 }
 
-/* camada sutil por cima do fundo */
-.ms-root::before{
-  content:"";
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  background: radial-gradient(circle at 50% 40%, rgba(59,130,246,0.10) 0%, rgba(0,0,0,0.0) 55%);
-  z-index: -1;
-}
-
-/* Sidebar */
-.ms-sidebar{
-  /* ✅ em vez de height hardcoded, usa min-height:0 + overflow controlado */
-  min-height: 0;
-  border-radius: 22px;
-  padding: 18px;
-
+/* ══════════════════════════════════════════════
+   SIDEBAR
+   ══════════════════════════════════════════════ */
+.ms-sidebar {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  border-right: 1px solid rgba(255,255,255,0.05);
+  background: rgba(255,255,255,0.018);
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+.ms-sidebar::-webkit-scrollbar { width: 3px; }
+.ms-sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.07); border-radius: 999px; }
 
-  /* ✅ se sidebar estourar, ela scrolla (evita “sumir” e evita cortar clique) */
-  overflow: auto;
+.ms-sidebar-top {
+  padding: 16px 12px 12px 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
 }
 
-/* (opcional) scrollbar discreto também na sidebar */
-.ms-sidebar::-webkit-scrollbar{ width: 6px; }
-.ms-sidebar::-webkit-scrollbar-thumb{
-  background: rgba(255,255,255,0.08);
-  border-radius: 999px;
-}
-.ms-sidebar::-webkit-scrollbar-thumb:hover{
-  background: rgba(255,255,255,0.14);
-}
-
-/* se tu usa "glass-premium", garante um fallback */
-.glass-premium{
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(40px);
-  border: 1px solid rgba(255, 255, 255, 0.10);
-  box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
-}
-
-.ms-side-title{
-  display:flex;
-  align-items:center;
-  justify-content: space-between;
-  font-size: 10px;
-  letter-spacing: .22em;
-  color: rgba(255,255,255,0.35);
-  text-transform: uppercase;
-}
-
-.ms-side-stations{
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.ms-side-station{
-  height: 46px;
-  border-radius: 14px;
-  border: 1px solid rgba(255,255,255,0.08);
-  background: rgba(255,255,255,0.02);
-  color: rgba(255,255,255,0.35);
-  cursor: pointer;
-  text-transform: uppercase;
+.ms-back-hub {
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.07);
+  background: transparent;
+  color: rgba(255,255,255,0.38);
+  font-size: 9px;
   letter-spacing: .18em;
-  font-size: 10px;
-  transition: all .2s ease;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all .15s ease;
 }
-
-.ms-side-station:hover{
-  background: rgba(255,255,255,0.04);
+.ms-back-hub:hover {
+  color: rgba(255,255,255,0.82);
   border-color: rgba(255,255,255,0.14);
-  color: rgba(255,255,255,0.7);
+  background: rgba(255,255,255,0.04);
 }
 
-.ms-side-station.is-active{
-  color: rgba(255,255,255,0.92);
-  box-shadow: 0 0 0 1px rgba(255,255,255,0.08) inset;
+.ms-side-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 12px 8px 12px;
+  font-size: 9px;
+  letter-spacing: .26em;
+  color: rgba(255,255,255,0.20);
+  font-family: inherit;
+}
+
+.ms-gear {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.07);
+  background: transparent;
+  color: rgba(255,255,255,0.28);
+  cursor: pointer;
+  font-size: 12px;
+  display: grid;
+  place-items: center;
+  font-family: inherit;
+  transition: all .15s ease;
+}
+.ms-gear:hover {
+  color: rgba(255,255,255,0.78);
+  border-color: rgba(255,255,255,0.14);
+}
+
+.ms-side-stations {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 0 8px 14px 8px;
+}
+
+.ms-side-station {
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 9px;
+  border: 1px solid rgba(255,255,255,0.05);
+  background: transparent;
+  color: rgba(255,255,255,0.40);
+  font-size: 9px;
+  letter-spacing: .18em;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  transition: all .15s ease;
+}
+.ms-side-station:hover {
+  color: rgba(255,255,255,0.78);
+  background: rgba(255,255,255,0.035);
+}
+.ms-side-station.is-active {
+  font-weight: 700;
+  /* colors set inline */
 }
 
 /* Profile card */
-.ms-profile{
-  border-radius: 18px;
-  padding: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+.ms-profile {
+  margin: 0 8px 8px 8px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.06);
+  border-left: 2px solid var(--profile-color, #7c3aed);
+  background: rgba(255,255,255,0.02);
+  padding: 10px 12px;
 }
 
-.ms-profile-left{
+.ms-profile-left {
   display: flex;
-  gap: 12px;
   align-items: center;
+  gap: 10px;
 }
 
-.ms-avatar{
-  width: 46px;
-  height: 46px;
-  border-radius: 14px;
-  border: 1px solid rgba(255,255,255,0.10);
+.ms-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  border: 1px solid rgba(255,255,255,0.07);
   background: rgba(255,255,255,0.04);
-  overflow: hidden;
   display: grid;
   place-items: center;
+  font-size: 16px;
+  flex-shrink: 0;
+  overflow: hidden;
 }
+.ms-avatar img { width: 100%; height: 100%; object-fit: cover; }
 
-.ms-avatar img{
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
+.ms-profile-meta { flex: 1; min-width: 0; }
 
-.ms-avatar span{
-  font-size: 18px;
-  opacity: .7;
-}
-
-.ms-profile-name{
-  font-weight: 800;
-  color: rgba(255,255,255,0.92);
-  font-size: 13px;
-}
-
-.ms-profile-sub{
-  display: flex;
-  gap: 10px;
-  margin-top: 4px;
+.ms-profile-name {
   font-size: 11px;
-  color: rgba(255,255,255,0.40);
+  font-weight: 700;
+  color: rgba(255,255,255,0.88);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 3px;
 }
 
-.ms-xpbar{
-  margin-top: 8px;
-  height: 6px;
+.ms-profile-sub {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 9px;
+  color: rgba(255,255,255,0.30);
+  letter-spacing: .12em;
+  margin-bottom: 6px;
+}
+.ms-xp { color: var(--profile-color, #7c3aed); }
+
+.ms-xpbar {
+  height: 2px;
   border-radius: 999px;
   background: rgba(255,255,255,0.06);
   overflow: hidden;
 }
-
-.ms-xpbar-fill{
+.ms-xpbar-fill {
   height: 100%;
   border-radius: 999px;
-  background: rgba(168,85,247,0.9);
-  box-shadow: 0 0 12px rgba(168,85,247,0.35);
+  background: var(--profile-color, #7c3aed);
+  transition: width .4s ease;
 }
 
-/* Botão ⚙ (sidebar e perfil) */
-.ms-gear{
-  width: 34px;
-  height: 34px;
+/* Calendar */
+.ms-calendar {
+  margin: 0 8px 8px 8px;
   border-radius: 12px;
-  border: 1px solid rgba(255,255,255,0.08);
-  background: rgba(0,0,0,0.20);
-  color: rgba(255,255,255,0.45);
-  cursor: pointer;
-  transition: all .18s ease;
-}
-.ms-gear:hover{
-  color: rgba(255,255,255,0.85);
-  background: rgba(255,255,255,0.05);
-  border-color: rgba(255,255,255,0.14);
+  border: 1px solid rgba(255,255,255,0.05);
+  background: rgba(255,255,255,0.015);
+  overflow: hidden;
 }
 
-.ms-calendar{
+/* Station tag */
+.ms-station-tag {
   margin-top: auto;
-  border-radius: 18px;
-  padding: 10px;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 8px;
+  letter-spacing: .26em;
+  color: rgba(255,255,255,0.14);
+  border-top: 1px solid rgba(255,255,255,0.04);
+  font-family: inherit;
 }
+.ms-station-dot { font-size: 6px; }
 
-/* Main */
-.ms-main{
-  min-height: 0;
-  border-radius: 22px;
-  padding: 18px;
-
+/* ══════════════════════════════════════════════
+   MAIN
+   ══════════════════════════════════════════════ */
+.ms-main {
   display: flex;
   flex-direction: column;
-  gap: 18px;
-
-  /* ✅ main pode scrollar se o board + header estourar */
-  overflow: hidden; /* mantém o board controlado */
+  overflow: hidden;
 }
 
-.ms-header{
+/* Header — compact, single row */
+.ms-header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-  padding: 6px 6px 0 6px;
+  padding: 0 20px;
+  height: 58px;
+  flex-shrink: 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  border-left: 3px solid var(--mod-color, #7c3aed);
+  background: rgba(255,255,255,0.012);
+  gap: 16px;
 }
 
-.ms-header-kicker{
-  font-size: 10px;
-  letter-spacing: .42em;
-  text-transform: uppercase;
-  color: rgba(255,255,255,0.30);
-  margin-bottom: 6px;
-}
-
-.ms-header-title-row{
+.ms-header-left {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 18px;
+  min-width: 0;
 }
 
-.ms-logo{
-  font-size: 48px;
-  letter-spacing: .22em;
-  color: rgba(255,255,255,0.92);
-}
-
-.ms-date{
-  font-size: 18px;
-  color: rgba(255,255,255,0.35);
-}
-
-.ms-new-mission{
-  height: 54px;
-  padding: 0 28px;
-  border-radius: 18px;
-  border: 1px solid rgba(168,85,247,0.35);
-  background: rgba(168,85,247,0.28);
-  color: rgba(255,255,255,0.92);
-  cursor: pointer;
+.ms-logo {
+  font-size: 17px;
   font-weight: 900;
-  letter-spacing: .18em;
-  text-transform: uppercase;
-  transition: all .18s ease;
-  box-shadow: 0 0 24px rgba(168,85,247,0.16);
+  letter-spacing: .06em;
+  color: rgba(255,255,255,0.90);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
-.ms-new-mission:hover{
-  background: rgba(168,85,247,0.38);
-  border-color: rgba(168,85,247,0.55);
+
+.ms-header-divider {
+  width: 1px;
+  height: 20px;
+  background: rgba(255,255,255,0.07);
+  flex-shrink: 0;
+}
+
+.ms-header-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.ms-date {
+  font-size: 10px;
+  color: rgba(255,255,255,0.45);
+  letter-spacing: .10em;
+  white-space: nowrap;
+}
+
+.ms-header-module {
+  font-size: 8px;
+  letter-spacing: .20em;
+  color: rgba(255,255,255,0.22);
+  text-transform: uppercase;
+}
+.ms-header-module span { font-weight: 700; }
+
+.ms-new-mission {
+  height: 34px;
+  padding: 0 16px;
+  border-radius: 9px;
+  border: 1px solid color-mix(in srgb, var(--mod-color, #7c3aed) 50%, transparent);
+  background: color-mix(in srgb, var(--mod-color, #7c3aed) 15%, transparent);
+  color: rgba(255,255,255,0.88);
+  font-size: 9px;
+  letter-spacing: .20em;
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all .15s ease;
+}
+.ms-new-mission:hover {
+  background: color-mix(in srgb, var(--mod-color, #7c3aed) 28%, transparent);
   transform: translateY(-1px);
 }
 
 /* Board */
-.ms-board{
-  flex: 1;
-  min-height: 0;  /* ✅ CRÍTICO: permite scroll dos filhos */
+.ms-board {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-
-  overflow: hidden; /* scroll fica nas colunas */
+  gap: 10px;
+  padding: 12px;
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
 }
 
-.ms-col{
-  border-radius: 26px;
-  padding: 16px;
-
+.ms-col {
   display: flex;
   flex-direction: column;
-
-  min-height: 0;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.05);
+  background: rgba(255,255,255,0.016);
   overflow: hidden;
+  min-height: 0;
 }
 
-.ms-col-head{
+.ms-col-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 10px;
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.045);
+  flex-shrink: 0;
 }
 
-.ms-col-title{
-  font-size: 12px;
-  letter-spacing: .22em;
-  color: rgba(255,255,255,0.45);
-  text-transform: uppercase;
+.ms-col-title {
+  font-size: 9px;
+  letter-spacing: .24em;
+  color: rgba(255,255,255,0.35);
+  font-family: inherit;
 }
 
-.ms-col-count{
-  font-size: 12px;
-  color: rgba(255,255,255,0.25);
+.ms-col-count {
+  font-size: 9px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.18);
+  min-width: 16px;
+  height: 16px;
+  border-radius: 5px;
+  background: rgba(255,255,255,0.05);
+  display: grid;
+  place-items: center;
+  font-family: inherit;
 }
 
-.ms-col-list{
-  overflow: auto;
-  padding-right: 6px;
-  min-height: 0;
-}
-
-/* Scrollbar discreto */
-.ms-col-list::-webkit-scrollbar{ width: 6px; }
-.ms-col-list::-webkit-scrollbar-thumb{
-  background: rgba(255,255,255,0.08);
-  border-radius: 999px;
-}
-.ms-col-list::-webkit-scrollbar-thumb:hover{
-  background: rgba(255,255,255,0.14);
-}
-
-
-/* ==================================
-   RESPONSIVO
-   ================================== */
-@media (max-width: 1200px){
-  .ms-root{ grid-template-columns: 300px 1fr; }
-  .ms-logo{ font-size: 40px; }
-}
-
-@media (max-width: 980px){
-  /* ✅ aqui precisa liberar scroll no container todo */
-  .ms-root{
-    grid-template-columns: 1fr;
-    overflow: auto;     /* ✅ AGORA SCROLLA */
-    position: relative; /* ✅ tira o “fixed” no mobile pra scroll natural */
-    inset: auto;
-    min-height: 100vh;
-  }
-  /* sidebar e main deixam de depender de altura da viewport */
-  .ms-sidebar{
-    overflow: visible;
-  }
-
-  .ms-main{
-    overflow: visible;
-  }
-
-  .ms-board{
-    grid-template-columns: 1fr;
-    overflow: visible;
-  }
-
-  .ms-col{
-    overflow: visible;
-  }
-
-  .ms-col-list{
-    overflow: visible; /* mobile: scroll do container, não da lista */
-  }
-}
-
-/* ================================== */
-/* ===== MISSIONS: HUB BUTTON ======= */
-/* ================================== */
-
-.ms-sidebar-top{
+.ms-col-list {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 8px;
   display: flex;
-  justify-content: flex-start;
+  flex-direction: column;
+  gap: 7px;
+}
+.ms-col-list::-webkit-scrollbar { width: 3px; }
+.ms-col-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.06); border-radius: 999px; }
+
+.ms-col-empty {
+  flex: 1;
+  display: flex;
   align-items: center;
-  margin-bottom: 6px;
+  justify-content: center;
+  font-size: 9px;
+  letter-spacing: .22em;
+  color: rgba(255,255,255,0.09);
+  font-family: inherit;
+  padding: 40px 0;
+  pointer-events: none;
+  user-select: none;
 }
 
-.ms-back-hub{
-  height: 38px;
-  padding: 0 14px;
-  border-radius: 999px;
-  border: 1px solid rgba(255,255,255,0.10);
-  background: rgba(0,0,0,0.25);
-  color: rgba(255,255,255,0.80);
-  cursor: pointer;
-  font-size: 11px;
-  letter-spacing: 0.10em;
-  text-transform: uppercase;
-  transition: 0.2s ease;
-  backdrop-filter: blur(10px);
-}
-
-.ms-back-hub:hover{
-  background: rgba(255,255,255,0.06);
-  border-color: rgba(255,255,255,0.18);
-  transform: translateY(-1px);
+/* ══════════════════════════════════════════════
+   RESPONSIVE
+   ══════════════════════════════════════════════ */
+@media (max-width: 900px) {
+  .ms-root {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+    overflow: auto;
+  }
+  .ms-sidebar {
+    flex-direction: row;
+    flex-wrap: wrap;
+    height: auto;
+    overflow: visible;
+    border-right: none;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .ms-board {
+    grid-template-columns: 1fr;
+    overflow: auto;
+  }
 }

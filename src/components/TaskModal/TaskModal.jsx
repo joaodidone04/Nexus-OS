@@ -1,76 +1,75 @@
-import React, { useEffect, useMemo, useState } from "react";
-import ModalContainer from "../ModalContainer/ModalContainer.jsx"; // ajuste o caminho se o teu for diferente
+import { useState } from "react";
+import ModalContainer from "../ModalContainer/ModalContainer";
 import "./TaskModal.css";
 
-const uid = () => Math.random().toString(36).slice(2, 9);
+const PRIORITY_META = {
+  normal:    { label: "NORMAL",     color: "#64748b" },
+  important: { label: "IMPORTANTE", color: "#fbbf24" },
+  priority:  { label: "PRIORIDADE", color: "#f97316" },
+  urgent:    { label: "URGENTE",    color: "#ef4444" },
+};
 
 export default function TaskModal({ task, onClose, onSave, onDelete }) {
-  const [draft, setDraft] = useState(() => normalizeTask(task));
+  const [title,       setTitle]       = useState(task.title || "");
+  const [description, setDescription] = useState(task.description || "");
+  const [subtasks,    setSubtasks]    = useState(task.subtasks || []);
+  const [comments,    setComments]    = useState(task.comments || []);
+  const [newComment,  setNewComment]  = useState("");
+  const [newSubtask,  setNewSubtask]  = useState("");
 
-  // ✅ quando abrir outra task, sincroniza o draft
-  useEffect(() => {
-    setDraft(normalizeTask(task));
-  }, [task]);
+  const p = PRIORITY_META[task.priority] || PRIORITY_META.normal;
+  const completedCount = subtasks.filter(s => s.done).length;
 
-  const progress = useMemo(() => {
-    const total = draft.subtasks.length;
-    const done = draft.subtasks.filter((s) => s.done).length;
-    return { total, done };
-  }, [draft.subtasks]);
+  const toggleSubtask = (id) =>
+    setSubtasks(prev => prev.map(s => s.id === id ? { ...s, done: !s.done } : s));
 
   const addSubtask = () => {
-    setDraft((d) => ({
-      ...d,
-      subtasks: [...d.subtasks, { id: uid(), text: "", done: false }],
-    }));
+    const text = newSubtask.trim();
+    if (!text) return;
+    const id = crypto?.randomUUID?.() || String(Date.now());
+    setSubtasks(prev => [...prev, { id, text, done: false }]);
+    setNewSubtask("");
   };
 
-  const updateSubtask = (id, patch) => {
-    setDraft((d) => ({
-      ...d,
-      subtasks: d.subtasks.map((s) => (s.id === id ? { ...s, ...patch } : s)),
-    }));
+  const removeSubtask = (id) =>
+    setSubtasks(prev => prev.filter(s => s.id !== id));
+
+  const addComment = () => {
+    const text = newComment.trim();
+    if (!text) return;
+    const id = crypto?.randomUUID?.() || String(Date.now());
+    const now = new Date().toLocaleString("pt-BR");
+    setComments(prev => [...prev, { id, text, date: now }]);
+    setNewComment("");
   };
 
-  const removeSubtask = (id) => {
-    setDraft((d) => ({
-      ...d,
-      subtasks: d.subtasks.filter((s) => s.id !== id),
-    }));
-  };
+  const removeComment = (id) =>
+    setComments(prev => prev.filter(c => c.id !== id));
 
-  const addComment = (text) => {
-    const t = text.trim();
-    if (!t) return;
-    setDraft((d) => ({
-      ...d,
-      comments: [{ id: uid(), text: t, at: Date.now() }, ...d.comments],
-    }));
-  };
-
-  const removeComment = (id) => {
-    setDraft((d) => ({
-      ...d,
-      comments: d.comments.filter((c) => c.id !== id),
-    }));
+  const handleSave = () => {
+    onSave({ ...task, title, description, subtasks, comments });
   };
 
   const footer = (
     <>
       <button
         type="button"
-        className="nx-modal-link"
-        onClick={() => onDelete?.(draft.id)}
+        className="nx-modal-link tech-font"
+        style={{ color: "rgba(248,113,113,0.55)" }}
+        onClick={() => onDelete(task.id)}
       >
-        Eliminar
+        ELIMINAR
       </button>
-
+      <button type="button" className="nx-modal-link tech-font" onClick={onClose}>
+        CANCELAR
+      </button>
       <button
         type="button"
-        className="nx-modal-confirm"
-        onClick={() => onSave?.(draft)}
+        className="nx-modal-confirm tech-font"
+        style={{ backgroundColor: task.borderColor || "#7c3aed" }}
+        onClick={handleSave}
       >
-        Salvar
+        SALVAR
       </button>
     </>
   );
@@ -78,169 +77,122 @@ export default function TaskModal({ task, onClose, onSave, onDelete }) {
   return (
     <ModalContainer title="TASK LOG" onClose={onClose} footer={footer}>
       <div className="tm-root">
-        <div className="tm-header">
-          <div className="tm-icon" style={{ borderColor: draft.borderColor }}>
-            {draft.icon}
-          </div>
 
-          <div className="tm-head">
+        {/* ── Identity row ── */}
+        <div className="tm-identity" style={{ "--accent": task.borderColor || "#7c3aed" }}>
+          {task.icon && <div className="tm-icon">{task.icon}</div>}
+          <div className="tm-identity-body">
             <input
-              className="tm-title"
-              value={draft.title || ""}
-              onChange={(e) =>
-                setDraft((d) => ({ ...d, title: e.target.value }))
-              }
-              placeholder="Título da task"
+              className="tm-title-input tech-font"
+              value={title}
+              onChange={e => setTitle(e.target.value)}
             />
-
-            <div className="tm-meta">
+            <div className="tm-badges">
               <span
-                className="tm-pill"
-                style={{ borderColor: (draft.borderColor || "#3b82f6") + "66" }}
+                className="tm-badge tech-font"
+                style={{ color: p.color, borderColor: p.color + "44", background: p.color + "18" }}
               >
-                +{draft.xp || 0} XP
+                {p.label}
               </span>
-
-              {progress.total > 0 ? (
-                <span className="tm-pill">
-                  {progress.done}/{progress.total} etapas
+              <span className="tm-badge tech-font">+{task.xp} XP</span>
+              {subtasks.length > 0 && (
+                <span className="tm-badge tech-font">
+                  {completedCount}/{subtasks.length} ETAPAS
                 </span>
-              ) : null}
-            </div>
-          </div>
-        </div>
-
-        <div className="tm-grid">
-          <div className="tm-block tm-desc">
-            <div className="tm-label">Descrição</div>
-            <textarea
-              className="tm-textarea"
-              value={draft.description || ""}
-              onChange={(e) =>
-                setDraft((d) => ({ ...d, description: e.target.value }))
-              }
-              placeholder="Log / descrição…"
-            />
-          </div>
-
-          <div className="tm-block tm-subtasks">
-            <div className="tm-row">
-              <div className="tm-label">Etapas (subtasks)</div>
-              <button type="button" className="tm-add" onClick={addSubtask}>
-                + Adicionar
-              </button>
-            </div>
-
-            <div className="tm-list tm-list-scroll">
-              {draft.subtasks.length === 0 ? (
-                <div className="tm-empty">Sem etapas ainda.</div>
-              ) : (
-                draft.subtasks.map((s) => (
-                  <div key={s.id} className="tm-subtask">
-                    <button
-                      type="button"
-                      className={`tm-check ${s.done ? "is-on" : ""}`}
-                      onClick={() => updateSubtask(s.id, { done: !s.done })}
-                    >
-                      {s.done ? "✓" : ""}
-                    </button>
-
-                    <input
-                      className="tm-subtask-input"
-                      value={s.text || ""}
-                      onChange={(e) =>
-                        updateSubtask(s.id, { text: e.target.value })
-                      }
-                      placeholder="Descrição da etapa…"
-                    />
-
-                    <button
-                      type="button"
-                      className="tm-del"
-                      onClick={() => removeSubtask(s.id)}
-                      title="Remover etapa"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                ))
+              )}
+              {task.date && (
+                <span className="tm-badge data-font">{task.date}</span>
+              )}
+              {task.time && (
+                <span className="tm-badge data-font">{task.time}</span>
               )}
             </div>
           </div>
-
-          <CommentsBlock
-            comments={draft.comments}
-            onAdd={addComment}
-            onRemove={removeComment}
-          />
         </div>
+
+        {/* ── Two-column body ── */}
+        <div className="tm-grid">
+
+          {/* Left: description */}
+          <div className="tm-section">
+            <div className="tm-section-label tech-font">DESCRIÇÃO</div>
+            <textarea
+              className="tm-textarea data-font"
+              value={description}
+              onChange={e => setDescription(e.target.value)}
+              placeholder="Detalhamento da operação..."
+            />
+          </div>
+
+          {/* Right: subtasks */}
+          <div className="tm-section">
+            <div className="tm-section-header">
+              <div className="tm-section-label tech-font">ETAPAS</div>
+            </div>
+
+            <div className="tm-subtask-add">
+              <input
+                className="tm-input tech-font"
+                value={newSubtask}
+                onChange={e => setNewSubtask(e.target.value)}
+                onKeyDown={e => { if (e.key === "Enter") addSubtask(); }}
+                placeholder="Nova etapa..."
+              />
+              <button type="button" className="tm-add-btn tech-font" onClick={addSubtask}>+</button>
+            </div>
+
+            <div className="tm-subtask-list">
+              {subtasks.length === 0 && (
+                <div className="tm-empty tech-font">SEM ETAPAS</div>
+              )}
+              {subtasks.map(s => (
+                <div key={s.id} className={`tm-subtask${s.done ? " is-done" : ""}`}>
+                  <button
+                    type="button"
+                    className="tm-check"
+                    onClick={() => toggleSubtask(s.id)}
+                    style={s.done ? { borderColor: task.borderColor, background: task.borderColor } : undefined}
+                  >
+                    {s.done && <span>✓</span>}
+                  </button>
+                  <span className="tm-subtask-text">{s.text}</span>
+                  <button type="button" className="tm-sub-del" onClick={() => removeSubtask(s.id)}>✕</button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* ── Comments ── */}
+        <div className="tm-section">
+          <div className="tm-section-label tech-font">COMENTÁRIOS</div>
+          <div className="tm-comment-add">
+            <input
+              className="tm-input tech-font"
+              value={newComment}
+              onChange={e => setNewComment(e.target.value)}
+              onKeyDown={e => { if (e.key === "Enter") addComment(); }}
+              placeholder="Escreve um comentário..."
+            />
+            <button type="button" className="tm-add-btn tech-font" onClick={addComment}>ENVIAR</button>
+          </div>
+
+          {comments.length > 0 && (
+            <div className="tm-comment-list">
+              {comments.map(c => (
+                <div key={c.id} className="tm-comment">
+                  <span className="tm-comment-text">{c.text}</span>
+                  <div className="tm-comment-foot">
+                    <span className="tm-comment-date data-font">{c.date}</span>
+                    <button type="button" className="tm-sub-del" onClick={() => removeComment(c.id)}>✕</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
       </div>
     </ModalContainer>
   );
-}
-
-function CommentsBlock({ comments, onAdd, onRemove }) {
-  const [text, setText] = useState("");
-
-  const submit = () => {
-    onAdd(text);
-    setText("");
-  };
-
-  return (
-    <div className="tm-block tm-comments">
-      <div className="tm-row">
-        <div className="tm-label">Comentários</div>
-      </div>
-
-      <div className="tm-commentbox">
-        <input
-          className="tm-comment-input"
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          placeholder="Escreve um comentário…"
-          onKeyDown={(e) => {
-            if (e.key === "Enter") submit();
-          }}
-        />
-        <button type="button" className="tm-add" onClick={submit}>
-          Enviar
-        </button>
-      </div>
-
-      <div className="tm-list">
-        {comments.length === 0 ? (
-          <div className="tm-empty">Sem comentários ainda.</div>
-        ) : (
-          comments.map((c) => (
-            <div key={c.id} className="tm-comment">
-              <div className="tm-comment-text">{c.text}</div>
-              <div className="tm-comment-actions">
-                <span className="tm-comment-at">
-                  {c.at ? new Date(c.at).toLocaleString() : ""}
-                </span>
-                <button
-                  type="button"
-                  className="tm-del"
-                  onClick={() => onRemove(c.id)}
-                  title="Remover comentário"
-                >
-                  ✕
-                </button>
-              </div>
-            </div>
-          ))
-        )}
-      </div>
-    </div>
-  );
-}
-
-function normalizeTask(task) {
-  return {
-    ...task,
-    borderColor: task?.borderColor || "#3b82f6",
-    subtasks: Array.isArray(task?.subtasks) ? task.subtasks : [],
-    comments: Array.isArray(task?.comments) ? task.comments : [],
-  };
 }

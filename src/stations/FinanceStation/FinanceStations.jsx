@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { useNexus } from "../../context/NexusContext";
-import "./FinanceStation.css";
+import "./FinanceStations.css";
 
 // ── Icons ─────────────────────────────────────────────
 const Icons = {
