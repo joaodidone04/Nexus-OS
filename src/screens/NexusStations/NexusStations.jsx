@@ -2,6 +2,7 @@ import React, { useEffect, useMemo } from "react";
 import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useNexus } from "../../context/NexusContext";
 import "./NexusStations.css";
+import "../../stations/StationsHome/StationsHome.css";
 
 export default function NexusStations() {
   const navigate = useNavigate();
@@ -82,18 +83,6 @@ export default function NexusStations() {
       <div className="bg-grid" />
       <div className="vignette" />
 
-      {/* TOPBAR */}
-      <div className="nx-topbar">
-        {!isHub && (
-          <button className="nx-topbar-btn" onClick={goHub} type="button">
-            ← HUB
-          </button>
-        )}
-        <button className="nx-topbar-btn danger" onClick={logout} type="button">
-          SAIR
-        </button>
-    </div>
-
       {/* HUB */}
       {isHub && (
         <div className="hub-root">
@@ -136,10 +125,12 @@ export default function NexusStations() {
             </div>
 
             <div className="hub-footer">AGUARDANDO COMANDO DE INTERFACE...</div>
+      <button className="nx-logout-btn" onClick={logout} type="button">
+          SAIR
+        </button>
           </div>
         </div>
       )}
-
       {/* STATION CONTENT */}
       {!isHub && (
         <div className="stations-content">

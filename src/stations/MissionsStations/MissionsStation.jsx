@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useNexus } from "../../context/NexusContext.jsx";
 import TaskCard from "../../components/Taskcard/TaskCard.jsx";
 import Calendar from "../../components/Calendar/Calendar.jsx";
@@ -73,17 +74,17 @@ export default function MissionsStation() {
     return () => document.body.classList.remove("is-missions-screen");
   }, []);
 
-  const goHub = () => {
-    if (window.history.length > 1) {
-      window.history.back();
-      return;
-    }
-    try {
-      window.location.assign("/hub");
-    } catch {
-      window.location.assign("/");
-    }
-  };
+  const navigate = useNavigate();
+const location = useLocation();
+
+const goHub = () => {
+  // se tu passou "from" ao navegar pra Missions, volta pro from
+  const from = location.state?.from;
+  if (from) return navigate(from, { replace: true });
+
+  // senão, vai direto pro HUB
+  navigate("/stations", { replace: true });
+};
 
   const [modules, setModules] = useState(() => readModulesLocal(profileId) ?? []);
   const [activeModuleId, setActiveModuleId] = useState(() => {

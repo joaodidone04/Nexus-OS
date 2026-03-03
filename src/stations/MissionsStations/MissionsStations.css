@@ -3,13 +3,18 @@
 /* ================================== */
 
 .ms-root{
+  /* ✅ mantém full-screen, mas permite scroll interno quando necessário */
   position: fixed;
   inset: 0;
+
   display: grid;
   grid-template-columns: 340px 1fr;
   gap: 18px;
   padding: 18px;
+
+  /* ✅ CRÍTICO: não “corta” o layout */
   overflow: hidden;
+  min-height: 0; /* importante p/ filhos com overflow funcionarem */
 }
 
 /* camada sutil por cima do fundo */
@@ -24,13 +29,27 @@
 
 /* Sidebar */
 .ms-sidebar{
-  height: calc(100vh - 36px);
+  /* ✅ em vez de height hardcoded, usa min-height:0 + overflow controlado */
+  min-height: 0;
   border-radius: 22px;
   padding: 18px;
-  overflow: hidden;
+
   display: flex;
   flex-direction: column;
   gap: 14px;
+
+  /* ✅ se sidebar estourar, ela scrolla (evita “sumir” e evita cortar clique) */
+  overflow: auto;
+}
+
+/* (opcional) scrollbar discreto também na sidebar */
+.ms-sidebar::-webkit-scrollbar{ width: 6px; }
+.ms-sidebar::-webkit-scrollbar-thumb{
+  background: rgba(255,255,255,0.08);
+  border-radius: 999px;
+}
+.ms-sidebar::-webkit-scrollbar-thumb:hover{
+  background: rgba(255,255,255,0.14);
 }
 
 /* se tu usa "glass-premium", garante um fallback */
@@ -172,13 +191,16 @@
 
 /* Main */
 .ms-main{
-  height: calc(100vh - 36px);
+  min-height: 0;
   border-radius: 22px;
-  overflow: hidden;
   padding: 18px;
+
   display: flex;
   flex-direction: column;
   gap: 18px;
+
+  /* ✅ main pode scrollar se o board + header estourar */
+  overflow: hidden; /* mantém o board controlado */
 }
 
 .ms-header{
@@ -236,19 +258,23 @@
 /* Board */
 .ms-board{
   flex: 1;
+  min-height: 0;  /* ✅ CRÍTICO: permite scroll dos filhos */
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 16px;
-  overflow: hidden;
+
+  overflow: hidden; /* scroll fica nas colunas */
 }
 
 .ms-col{
   border-radius: 26px;
   padding: 16px;
-  overflow: hidden;
+
   display: flex;
   flex-direction: column;
+
   min-height: 0;
+  overflow: hidden;
 }
 
 .ms-col-head{
@@ -286,17 +312,47 @@
   background: rgba(255,255,255,0.14);
 }
 
-/* Responsivo */
+
+/* ==================================
+   RESPONSIVO
+   ================================== */
 @media (max-width: 1200px){
   .ms-root{ grid-template-columns: 300px 1fr; }
   .ms-logo{ font-size: 40px; }
 }
+
 @media (max-width: 980px){
-  .ms-root{ grid-template-columns: 1fr; }
-  .ms-sidebar{ height: auto; }
-  .ms-main{ height: auto; }
-  .ms-board{ grid-template-columns: 1fr; }
+  /* ✅ aqui precisa liberar scroll no container todo */
+  .ms-root{
+    grid-template-columns: 1fr;
+    overflow: auto;     /* ✅ AGORA SCROLLA */
+    position: relative; /* ✅ tira o “fixed” no mobile pra scroll natural */
+    inset: auto;
+    min-height: 100vh;
+  }
+  /* sidebar e main deixam de depender de altura da viewport */
+  .ms-sidebar{
+    overflow: visible;
+  }
+
+  .ms-main{
+    overflow: visible;
+  }
+
+  .ms-board{
+    grid-template-columns: 1fr;
+    overflow: visible;
+  }
+
+  .ms-col{
+    overflow: visible;
+  }
+
+  .ms-col-list{
+    overflow: visible; /* mobile: scroll do container, não da lista */
+  }
 }
+
 /* ================================== */
 /* ===== MISSIONS: HUB BUTTON ======= */
 /* ================================== */
@@ -327,11 +383,4 @@
   background: rgba(255,255,255,0.06);
   border-color: rgba(255,255,255,0.18);
   transform: translateY(-1px);
-}
-/* =========================================
-   HIDE GLOBAL TOPBAR INSIDE MISSIONS
-   (evita HUB duplicado e remove SAIR)
-   ========================================= */
-body.is-missions-screen .nx-topbar{
-  display: none !important;
 }
