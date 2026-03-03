@@ -1,156 +1,172 @@
 /* =========================
    NEW TASK — FORM SYSTEM (nx-*)
    ========================= */
-.nx-form{ display: flex; flex-direction: column; gap: 16px; }
-.nx-field{ display: flex; flex-direction: column; gap: 10px; }
+.nx-form { display: flex; flex-direction: column; gap: 16px; }
+.nx-field { display: flex; flex-direction: column; gap: 10px; }
 
-.nx-label{
+.nx-label {
   font-size: 10px;
   letter-spacing: .22em;
   text-transform: uppercase;
-  color: rgba(147,197,253,0.70);
+  color: rgba(147, 197, 253, 0.70);
 }
 
-.nx-input{
+.nx-input {
   border-radius: 12px;
   padding: 14px 16px;
-  border: 1px solid rgba(59,130,246,0.18);
-  background: rgba(0,0,0,0.55);
-  color: rgba(255,255,255,0.92);
+  border: 1px solid rgba(59, 130, 246, 0.18);
+  background: rgba(0, 0, 0, 0.55);
+  color: rgba(255, 255, 255, 0.92);
   outline: none;
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 11px;
 }
-.nx-input:focus{ border-color: rgba(59,130,246,0.55); }
+.nx-input:focus { border-color: rgba(59, 130, 246, 0.55); }
 
-.nx-textarea{
+.nx-textarea {
   border-radius: 12px;
   padding: 14px 16px;
-  border: 1px solid rgba(59,130,246,0.18);
-  background: rgba(0,0,0,0.55);
-  color: rgba(255,255,255,0.85);
+  border: 1px solid rgba(59, 130, 246, 0.18);
+  background: rgba(0, 0, 0, 0.55);
+  color: rgba(255, 255, 255, 0.85);
   outline: none;
+  resize: vertical;
+  min-height: 80px;
+  width: 100%;
+  box-sizing: border-box;
 }
-.nx-textarea:focus{ border-color: rgba(59,130,246,0.55); }
+.nx-textarea:focus { border-color: rgba(59, 130, 246, 0.55); }
 
-.nx-grid-2{
+/* ── Two-column grid ── */
+.nx-grid-2 {
   display: grid;
   grid-template-columns: 1fr;
   gap: 16px;
 }
-@media (min-width: 900px){
-  .nx-grid-2{ grid-template-columns: 1fr 1fr; }
+@media (min-width: 900px) {
+  .nx-grid-2 { grid-template-columns: 1fr 1fr; }
 }
 
-.nx-priority-grid{
+/* ── Priority chips ── */
+.nx-priority-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 10px;
 }
 
 .nx-chip,
-.nx-recur-btn{
+.nx-recur-btn {
   height: 42px;
   border-radius: 12px;
-  border: 1px solid rgba(255,255,255,0.10);
-  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: rgba(255, 255, 255, 0.03);
   cursor: pointer;
   transition: transform .12s ease, filter .18s ease;
   font-size: 10px;
   letter-spacing: .22em;
   text-transform: uppercase;
-  color: rgba(255,255,255,0.55);
+  color: rgba(255, 255, 255, 0.55);
 }
 .nx-chip:hover,
-.nx-recur-btn:hover{ filter: brightness(1.08); transform: translateY(-1px); }
+.nx-recur-btn:hover { filter: brightness(1.08); transform: translateY(-1px); }
 
-.nx-recurrence{
+/* ── Recurrence block ── */
+.nx-recurrence {
   padding: 14px;
   border-radius: 14px;
-  border: 1px solid rgba(59,130,246,0.12);
-  background: rgba(59,130,246,0.06);
+  border: 1px solid rgba(59, 130, 246, 0.12);
+  background: rgba(59, 130, 246, 0.06);
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.nx-recurrence-row{ display: flex; gap: 10px; }
+.nx-recurrence-row { display: flex; gap: 10px; flex-wrap: wrap; }
 
-.nx-weekdays{ display: flex; gap: 8px; flex-wrap: wrap; }
+.nx-weekdays { display: flex; gap: 8px; flex-wrap: wrap; }
 
-.nx-day{
+.nx-day {
   width: 38px;
   height: 38px;
   border-radius: 12px;
-  border: 1px solid rgba(255,255,255,0.10);
-  background: rgba(255,255,255,0.03);
-  color: rgba(255,255,255,0.65);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: rgba(255, 255, 255, 0.03);
+  color: rgba(255, 255, 255, 0.65);
   cursor: pointer;
+  font-size: 11px;
   transition: transform .12s ease, filter .18s ease;
 }
-.nx-day:hover{ filter: brightness(1.08); transform: translateY(-1px); }
-.nx-day.is-on{
-  color: rgba(255,255,255,0.95);
-  box-shadow: 0 0 0 1px rgba(255,255,255,0.10) inset;
+.nx-day:hover { filter: brightness(1.08); transform: translateY(-1px); }
+.nx-day.is-on {
+  color: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.10) inset;
 }
 
-.nx-obj-row{
+/* ── Objectives ── */
+.nx-obj-row {
   display: grid;
   grid-template-columns: 1fr auto;
   gap: 10px;
 }
-.nx-obj-add{
+
+.nx-obj-add {
   height: 46px;
   padding: 0 16px;
   border-radius: 12px;
-  border: 1px solid rgba(59,130,246,0.25);
-  background: rgba(59,130,246,0.16);
-  color: rgba(255,255,255,0.85);
+  border: 1px solid rgba(59, 130, 246, 0.25);
+  background: rgba(59, 130, 246, 0.16);
+  color: rgba(255, 255, 255, 0.85);
   cursor: pointer;
   font-size: 10px;
   letter-spacing: .22em;
   text-transform: uppercase;
+  white-space: nowrap;
 }
-.nx-obj-add:hover{ filter: brightness(1.08); }
+.nx-obj-add:hover { filter: brightness(1.08); }
 
-.nx-obj-list{ margin-top: 10px; display: flex; flex-direction: column; gap: 8px; }
+.nx-obj-list { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; }
 
-.nx-obj-item{
+.nx-obj-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
   padding: 10px 12px;
   border-radius: 12px;
-  border: 1px solid rgba(255,255,255,0.06);
-  background: rgba(255,255,255,0.03);
-  color: rgba(255,255,255,0.70);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.03);
+  color: rgba(255, 255, 255, 0.70);
 }
 
-.nx-obj-del{
+.nx-obj-del {
   width: 34px;
   height: 34px;
   border-radius: 12px;
-  border: 1px solid rgba(255,255,255,0.08);
-  background: rgba(0,0,0,0.30);
-  color: rgba(255,255,255,0.55);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.30);
+  color: rgba(255, 255, 255, 0.55);
   cursor: pointer;
+  flex-shrink: 0;
 }
-.nx-obj-del:hover{ color: rgba(255,255,255,0.95); background: rgba(255,255,255,0.05); }
+.nx-obj-del:hover { color: rgba(255, 255, 255, 0.95); background: rgba(255, 255, 255, 0.05); }
 
-.nx-border-grid{
+/* ── Border / color chips ── */
+.nx-border-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 10px;
 }
-@media (min-width: 900px){
-  .nx-border-grid{ grid-template-columns: repeat(3, 1fr); }
+@media (min-width: 900px) {
+  .nx-border-grid { grid-template-columns: repeat(3, 1fr); }
 }
 
-.nx-border-chip{
+.nx-border-chip {
   height: 44px;
   border-radius: 12px;
-  border: 1px solid rgba(255,255,255,0.10);
-  background: rgba(255,255,255,0.02);
-  color: rgba(255,255,255,0.70);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: rgba(255, 255, 255, 0.02);
+  color: rgba(255, 255, 255, 0.70);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -161,19 +177,21 @@
   text-transform: uppercase;
   transition: transform .12s ease, filter .18s ease;
 }
-.nx-border-chip:hover{ filter: brightness(1.08); transform: translateY(-1px); }
+.nx-border-chip:hover { filter: brightness(1.08); transform: translateY(-1px); }
 
-.nx-swatch{
+.nx-swatch {
   width: 12px;
   height: 12px;
   border-radius: 4px;
   display: inline-block;
+  flex-shrink: 0;
 }
 
-.nx-icons{
+/* ── Icon grid ── */
+.nx-icons {
   border-radius: 14px;
-  border: 1px solid rgba(59,130,246,0.18);
-  background: rgba(0,0,0,0.55);
+  border: 1px solid rgba(59, 130, 246, 0.18);
+  background: rgba(0, 0, 0, 0.55);
   padding: 10px;
   display: grid;
   grid-template-columns: repeat(8, 1fr);
@@ -182,7 +200,7 @@
   overflow: auto;
 }
 
-.nx-icon-btn{
+.nx-icon-btn {
   height: 42px;
   border-radius: 12px;
   border: 2px solid transparent;
@@ -191,89 +209,116 @@
   font-size: 18px;
   transition: transform .12s ease, background .18s ease, filter .18s ease;
 }
-.nx-icon-btn:hover{ transform: scale(1.06); background: rgba(255,255,255,0.05); }
+.nx-icon-btn:hover { transform: scale(1.06); background: rgba(255, 255, 255, 0.05); }
 
 /* =========================
-   TIMEPICKER CUSTOM
+   TIMEPICKER — custom combos
    ========================= */
 
-.nx-timepicker{
-  display:flex;
-  align-items:center;
+.nx-timepicker {
+  display: flex;
+  align-items: center;
   gap: 10px;
 }
 
-.nx-combo{
+/* Each half (hh / mm) fills available space equally */
+.nx-combo {
   position: relative;
   flex: 1;
+  /* --accent is set inline via JS (currentModule.color) */
+  --accent: rgba(59, 130, 246, 0.80);
 }
 
-.nx-combo-btn{
+.nx-combo-btn {
   width: 100%;
   height: 46px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   padding: 0 14px;
   border-radius: 12px;
-  border: 1px solid rgba(59,130,246,0.18);
-  background: rgba(0,0,0,0.55);
-  color: rgba(255,255,255,0.92);
+  border: 1px solid rgba(59, 130, 246, 0.18);
+  background: rgba(0, 0, 0, 0.55);
+  color: rgba(255, 255, 255, 0.92);
   cursor: pointer;
+  font-size: 13px;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.nx-combo-btn:hover {
+  border-color: rgba(59, 130, 246, 0.40);
 }
 
-.nx-combo.is-open .nx-combo-btn{
+.nx-combo.is-open .nx-combo-btn {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent);
 }
 
-.nx-combo-pop{
+/* Fallback for browsers without color-mix */
+@supports not (color: color-mix(in srgb, red 25%, blue)) {
+  .nx-combo.is-open .nx-combo-btn {
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+  }
+}
+
+.nx-combo-pop {
   position: absolute;
   top: calc(100% + 6px);
   left: 0;
   right: 0;
   z-index: 9999;
   max-height: 220px;
-  overflow: auto;
+  overflow-y: auto;
   border-radius: 14px;
-  border: 1px solid rgba(255,255,255,0.08);
-  background: rgba(10,10,15,0.95);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(10, 10, 15, 0.97);
   backdrop-filter: blur(18px);
-  box-shadow: 0 25px 60px rgba(0,0,0,0.55);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.55);
   padding: 6px;
 }
 
-.nx-combo-opt{
+.nx-combo-opt {
   width: 100%;
   height: 36px;
   border-radius: 10px;
   border: 1px solid transparent;
   background: transparent;
-  color: rgba(255,255,255,0.85);
+  color: rgba(255, 255, 255, 0.85);
   cursor: pointer;
   text-align: left;
   padding: 0 10px;
+  font-size: 12px;
+  transition: background .10s ease;
 }
-
-.nx-combo-opt:hover{
-  background: rgba(255,255,255,0.06);
+.nx-combo-opt:hover {
+  background: rgba(255, 255, 255, 0.06);
 }
-
-.nx-combo-opt.is-active{
+.nx-combo-opt.is-active {
   background: color-mix(in srgb, var(--accent) 30%, transparent);
   border-color: var(--accent);
+  color: #fff;
 }
 
-.nx-combo-pop::-webkit-scrollbar{
-  width: 8px;
+/* Fallback for browsers without color-mix */
+@supports not (color: color-mix(in srgb, red 25%, blue)) {
+  .nx-combo-opt.is-active {
+    background: rgba(59, 130, 246, 0.25);
+  }
 }
 
-.nx-combo-pop::-webkit-scrollbar-thumb{
-  background: rgba(255,255,255,0.10);
+/* Scrollbar */
+.nx-combo-pop::-webkit-scrollbar { width: 6px; }
+.nx-combo-pop::-webkit-scrollbar-track { background: transparent; }
+.nx-combo-pop::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.10);
   border-radius: 999px;
 }
 
-.nx-tsep{
-  opacity: .55;
-  user-select:none;
+/* Separator colon */
+.nx-tsep {
+  font-size: 18px;
+  font-weight: 600;
+  opacity: .45;
+  user-select: none;
+  flex-shrink: 0;
 }
