@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { API } from "../HealthStation";
+import { API } from "../healthApi";
 
 const TYPES = ["musculacao","cardio","funcional","yoga","outro"];
 const TYPE_LABELS = { musculacao:"💪 MUSCULAÇÃO", cardio:"🏃 CARDIO", funcional:"⚡ FUNCIONAL", yoga:"🧘 YOGA", outro:"🎯 OUTRO" };

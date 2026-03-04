@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { API } from "../HealthStation";
+import { API } from "../healthApi";
 
 const QUICK = [150, 200, 250, 300, 500];
 const TYPES = ["agua","isotônico","suco","cafe"];

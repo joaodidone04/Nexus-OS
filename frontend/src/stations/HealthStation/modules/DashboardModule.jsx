@@ -4,7 +4,7 @@
  * Visão geral dos 6 módulos de saúde
  */
 import { useState, useEffect } from "react";
-import { API } from "../HealthStation.jsx";
+import { API } from "../healthApi";
 
 // ── Mini bar chart ─────────────────────────────────────────────────────────
 function MiniBar({ data, color }) {

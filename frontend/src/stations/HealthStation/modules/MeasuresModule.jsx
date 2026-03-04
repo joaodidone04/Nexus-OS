@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { API } from "../HealthStation";
+import { API } from "../healthApi";
 
 const FIELDS = [
   { key: "weight_kg",    label: "PESO",     unit: "kg",  step: "0.1" },

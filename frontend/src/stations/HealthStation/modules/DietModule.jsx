@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { API } from "../HealthStation";
+import { API } from "../healthApi";
 
 const MEALS = ["cafe", "almoco", "jantar", "lanche", "outro"];
 const MEAL_LABELS = { cafe: "☕ CAFÉ", almoco: "🍽 ALMOÇO", jantar: "🌙 JANTAR", lanche: "🥜 LANCHE", outro: "📦 OUTRO" };

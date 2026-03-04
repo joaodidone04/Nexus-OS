@@ -18,7 +18,7 @@ import SleepModule       from "./modules/SleepModule";
 import SupplementsModule from "./modules/SupplementsModule";
 
 // ─── Config ────────────────────────────────────────────────────────────────
-export const API = import.meta.env.VITE_API_URL || "http://localhost:3001/api";
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
 const MODULES = [
   { id: "dashboard",   label: "DASHBOARD",   sublabel: "Visão Geral",          icon: "📊", color: "#3b82f6", accent: "#2563eb" },
