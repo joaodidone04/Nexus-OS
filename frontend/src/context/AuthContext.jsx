@@ -27,17 +27,29 @@ export function AuthProvider({ children }) {
   const [loading,      setLoading]      = useState(true);
   const [authError,    setAuthError]    = useState("");
   const [xpToast,      setXpToast]      = useState(null); // { xp, label, icon, levelUp, rankUp }
-  const profileUnsub = useRef(null);
+  const profileUnsub     = useRef(null);
+  const redirectHandled  = useRef(false); // evita double-bootstrap redirect + onAuthStateChanged
 
   // ── Listener de auth state ───────────────────
   useEffect(() => {
-    // Resultado de redirect (Apple em mobile)
+    // Resultado de redirect (Google/Apple em mobile)
     getRedirectResult(auth).then(async (result) => {
-      if (result?.user) await bootstrapUser(result.user);
-    }).catch(console.error);
+      if (result?.user) {
+        redirectHandled.current = true;
+        await bootstrapUser(result.user);
+      }
+    }).catch((err) => {
+      console.error("getRedirectResult error:", err);
+      setLoading(false);
+    });
 
     const unsub = onAuthStateChanged(auth, async (user) => {
       if (user) {
+        // Se o redirect já fez o bootstrap, evita duplicar
+        if (redirectHandled.current) {
+          redirectHandled.current = false;
+          return;
+        }
         await bootstrapUser(user);
       } else {
         // Deslogou
@@ -47,6 +59,7 @@ export function AuthProvider({ children }) {
         setLoading(false);
       }
     });
+
     return () => { unsub(); profileUnsub.current?.(); };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -71,9 +84,10 @@ export function AuthProvider({ children }) {
   /** Login com Google (popup desktop, redirect mobile) */
   const signInWithGoogle = useCallback(async () => {
     setAuthError("");
+    const isMobile = /Mobi|Android/i.test(navigator.userAgent);
     try {
-      const isMobile = /Mobi|Android/i.test(navigator.userAgent);
       if (isMobile) {
+        // signInWithRedirect causa reload — a Promise não resolve na mesma sessão
         await signInWithRedirect(auth, googleProvider);
       } else {
         const result = await signInWithPopup(auth, googleProvider);
@@ -89,8 +103,8 @@ export function AuthProvider({ children }) {
   /** Login com Apple */
   const signInWithApple = useCallback(async () => {
     setAuthError("");
+    const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
     try {
-      const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
       if (isMobile) {
         await signInWithRedirect(auth, appleProvider);
       } else {

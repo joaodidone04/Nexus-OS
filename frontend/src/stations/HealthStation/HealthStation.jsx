@@ -18,7 +18,7 @@ import SleepModule       from "./modules/SleepModule";
 import SupplementsModule from "./modules/SupplementsModule";
 
 // ─── Config ────────────────────────────────────────────────────────────────
-export const API = "http://localhost:3001/api";
+export const API = import.meta.env.VITE_API_URL || "http://localhost:3001/api";
 
 const MODULES = [
   { id: "dashboard",   label: "DASHBOARD",   sublabel: "Visão Geral",          icon: "📊", color: "#3b82f6", accent: "#2563eb" },
@@ -58,7 +58,6 @@ export default function HealthStation() {
     const mod = MODULES.find(m => m.id === activeModule);
     return (
       <ModuleShell mod={mod} onBack={() => setActiveModule(null)}>
-        {/* profileId agora é o UID do Firebase — compatível com todos os módulos */}
         {activeModule === "dashboard"   && <DashboardModule   profileId={profileId} color={mod.color} />}
         {activeModule === "diet"        && <DietModule        profileId={profileId} color={mod.color} />}
         {activeModule === "workout"     && <WorkoutModule     profileId={profileId} color={mod.color} />}
@@ -98,7 +97,8 @@ export default function HealthStation() {
         {/* API offline warning */}
         {apiOnline === false && (
           <div className="hs-api-warn tech-font">
-            ⚠ Backend offline — rode <code>node server.js</code> na pasta <code>nexus-health-backend</code>
+            ⚠ Backend offline — verifique o serviço em{" "}
+            <code>https://nexus-os-e4w9.onrender.com</code>
           </div>
         )}
 

@@ -117,8 +117,8 @@ export default function LoginScreen() {
 
   // Redireciona se já autenticado
   useEffect(() => {
-  if (isAuthenticated) navigate("/stations", { replace: true });
-}, [isAuthenticated, navigate]);
+    if (isAuthenticated) navigate("/stations", { replace: true });
+  }, [isAuthenticated, navigate]);
 
   const error = localErr || authError;
 
@@ -132,14 +132,44 @@ export default function LoginScreen() {
   // ── Handlers ──────────────────────────────────
 
   async function handleGoogle() {
-    setLoading(true); setLocalErr(""); clearError();
+    setLocalErr(""); clearError();
+    const isMobile = /Mobi|Android/i.test(navigator.userAgent);
+
+    if (isMobile) {
+      // Em mobile o signInWithRedirect causa reload da página —
+      // a Promise não resolve na mesma sessão, então não usamos finally.
+      setLoading(true);
+      try {
+        await signInWithGoogle();
+      } catch {
+        // Só cai aqui se der erro antes do redirect (ex: offline)
+        setLoading(false);
+      }
+      return;
+    }
+
+    // Desktop: popup resolve normalmente
+    setLoading(true);
     try { await signInWithGoogle(); }
     catch { /* erro já no context */ }
     finally { setLoading(false); }
   }
 
   async function handleApple() {
-    setLoading(true); setLocalErr(""); clearError();
+    setLocalErr(""); clearError();
+    const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+
+    if (isMobile) {
+      setLoading(true);
+      try {
+        await signInWithApple();
+      } catch {
+        setLoading(false);
+      }
+      return;
+    }
+
+    setLoading(true);
     try { await signInWithApple(); }
     catch { /* erro já no context */ }
     finally { setLoading(false); }
