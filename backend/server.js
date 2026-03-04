@@ -61,7 +61,21 @@ const upload = multer({ storage, limits: { fileSize: 10 * 1024 * 1024 } });
 
 // ─── App ──────────────────────────────────────────────────────────────────
 const app = express();
-app.use(cors());
+
+// ── CORS — libera Firebase + localhost ─────────────────────────────────────
+app.use(cors({
+  origin: [
+    "https://nexus-app-d5b67.web.app",
+    "https://nexus-app-d5b67.firebaseapp.com",
+    "http://localhost:5173",
+    "http://localhost:4173",
+    "http://localhost:3000",
+  ],
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true,
+}));
+
 app.use(express.json());
 app.use("/uploads", express.static(IMG_DIR));
 
