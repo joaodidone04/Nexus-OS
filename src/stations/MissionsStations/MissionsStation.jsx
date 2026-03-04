@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useNexus } from "../../context/NexusContext.jsx";
 import { readModulesLocal, writeModulesLocal } from "../../services/modulesStorage.js";
-import { taskOccursOnDate, getActiveDates, getDatesOfMonth } from "../../services/Recurrence.js";
+import { taskOccursOnDate, getActiveDates, getDatesOfMonth } from "../../Utils/Recurrence.js";
 import TaskCard from "../../components/Taskcard/TaskCard.jsx";
 import Calendar from "../../components/Calendar/Calendar.jsx";
 import NewTaskModal from "../../components/NewTask/NewTaskModal.jsx";
