@@ -1,0 +1,251 @@
+/* ═══════════════════════════════════════════
+   NΞXUS — HEALTH DASHBOARD MODULE
+   ═══════════════════════════════════════════ */
+
+.hd-root {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ── Loading ── */
+.hd-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 80px 20px;
+  font-size: 10px;
+  letter-spacing: .28em;
+  color: rgba(255,255,255,0.30);
+}
+.hd-loading-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  animation: hd-pulse 1.2s ease-in-out infinite;
+}
+@keyframes hd-pulse {
+  0%,100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: .4; transform: scale(.7); }
+}
+
+/* ── KPI Strip ── */
+.hd-kpi-strip {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+}
+.hd-kpi {
+  border-radius: 16px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-left: 2px solid var(--c) !important;
+}
+.hd-kpi-icon { font-size: 22px; flex-shrink: 0; }
+.hd-kpi-info { display: flex; flex-direction: column; gap: 2px; }
+.hd-kpi-value { font-size: 16px; font-weight: 700; letter-spacing: -0.3px; line-height: 1; }
+.hd-kpi-label { font-size: 9px; letter-spacing: .18em; color: rgba(255,255,255,0.30); text-transform: uppercase; }
+
+/* ── Main Grid ── */
+.hd-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+@media (max-width: 1100px) { .hd-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 700px)  { .hd-grid { grid-template-columns: 1fr; } }
+
+/* ── Section Card ── */
+.hd-section {
+  border-radius: 20px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  border-top: 1px solid color-mix(in srgb, var(--c) 30%, transparent) !important;
+  position: relative;
+  overflow: hidden;
+}
+.hd-section::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--c), transparent);
+  opacity: 0.5;
+}
+
+.hd-section-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  position: relative;
+}
+.hd-section-icon { font-size: 18px; }
+.hd-section-label {
+  font-size: 9px;
+  letter-spacing: .28em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.40);
+  flex: 1;
+}
+.hd-section-glow-line {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--c);
+  box-shadow: 0 0 8px var(--c);
+  flex-shrink: 0;
+}
+
+/* ── Empty ── */
+.hd-empty {
+  font-size: 10px; letter-spacing: .20em; text-transform: uppercase;
+  color: rgba(255,255,255,0.18); text-align: center;
+  padding: 20px 0; margin: 0;
+}
+
+/* ── Ring ── */
+.hd-ring-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.hd-ring-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+.hd-ring-center {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+.hd-ring-pct { font-size: 13px; font-weight: 700; }
+.hd-ring-info { display: flex; flex-direction: column; gap: 4px; }
+.hd-ring-main {
+  font-size: 22px; font-weight: 700; letter-spacing: -0.5px;
+  color: rgba(255,255,255,0.92);
+}
+.hd-ring-main small { font-size: 13px; font-weight: 400; color: rgba(255,255,255,0.35); margin-left: 2px; }
+.hd-ring-sub   { font-size: 10px; color: rgba(255,255,255,0.30); letter-spacing: .10em; }
+.hd-ring-meals { font-size: 10px; color: rgba(255,255,255,0.25); letter-spacing: .10em; }
+
+/* ── Macros ── */
+.hd-macros { display: flex; flex-direction: column; gap: 8px; }
+.hd-macro-row { display: flex; align-items: center; gap: 10px; }
+.hd-macro-label {
+  font-size: 9px; letter-spacing: .14em; text-transform: uppercase;
+  color: rgba(255,255,255,0.35); width: 54px; flex-shrink: 0;
+}
+.hd-macro-bar-track {
+  flex: 1; height: 4px; border-radius: 999px;
+  background: rgba(255,255,255,0.06); overflow: hidden;
+}
+.hd-macro-bar-fill { height: 100%; border-radius: 999px; transition: width .5s ease; }
+.hd-macro-val {
+  font-size: 10px; font-weight: 700; width: 36px;
+  text-align: right; flex-shrink: 0;
+}
+
+/* ── Workout ── */
+.hd-workout-stats { display: flex; gap: 8px; }
+
+.hd-stat-pill {
+  flex: 1;
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: color-mix(in srgb, var(--c) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--c) 20%, transparent);
+  display: flex; flex-direction: column; gap: 3px;
+  align-items: center;
+}
+.hd-stat-pill-val { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; line-height: 1; }
+.hd-stat-pill-label { font-size: 8px; letter-spacing: .18em; color: rgba(255,255,255,0.30); text-transform: uppercase; }
+
+.hd-week-days {
+  display: flex; gap: 6px; justify-content: space-between;
+}
+.hd-week-day {
+  flex: 1; height: 32px; border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.02);
+  display: grid; place-items: center;
+  font-size: 9px; letter-spacing: .10em;
+  color: rgba(255,255,255,0.20);
+  transition: all .2s;
+}
+.hd-week-day.active { color: #fff; }
+
+.hd-workout-list { display: flex; flex-direction: column; gap: 6px; }
+.hd-workout-item {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 8px 10px; border-radius: 10px;
+  background: rgba(59,130,246,0.06);
+  border: 1px solid rgba(59,130,246,0.12);
+}
+.hd-workout-name { font-size: 12px; color: rgba(255,255,255,0.80); font-weight: 500; }
+.hd-workout-meta { font-size: 9px; letter-spacing: .12em; color: rgba(255,255,255,0.30); text-transform: uppercase; }
+
+/* ── Hydration track ── */
+.hd-hyd-track {
+  height: 8px; border-radius: 999px;
+  background: rgba(255,255,255,0.06); overflow: hidden;
+}
+.hd-hyd-fill {
+  height: 100%; border-radius: 999px;
+  background: linear-gradient(90deg, #0891b2, #06b6d4);
+  transition: width .6s ease;
+}
+.hd-hyd-markers {
+  display: flex; justify-content: space-between;
+  padding: 0 2px;
+}
+.hd-hyd-marker { font-size: 8px; letter-spacing: .10em; transition: color .3s; }
+
+/* ── Sleep bar chart ── */
+.hd-bar-chart { display: flex; align-items: flex-end; gap: 4px; height: 80px; }
+.hd-bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: flex-end; gap: 4px; }
+.hd-bar-fill { width: 100%; border-radius: 3px 3px 0 0; min-height: 3px; opacity: 0.75; }
+.hd-bar-label { font-size: 8px; color: rgba(255,255,255,0.25); letter-spacing: .05em; }
+
+/* ── Sleep stats ── */
+.hd-sleep-stats { display: flex; gap: 8px; }
+
+/* ── Measures grid ── */
+.hd-measures-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+}
+.hd-measure-cell {
+  display: flex; flex-direction: column; gap: 3px; align-items: center;
+  padding: 10px 8px; border-radius: 12px;
+  background: rgba(139,92,246,0.07);
+  border: 1px solid rgba(139,92,246,0.14);
+}
+.hd-measure-val { font-size: 15px; font-weight: 700; letter-spacing: -0.3px; }
+.hd-measure-label { font-size: 8px; letter-spacing: .14em; text-transform: uppercase; color: rgba(255,255,255,0.30); }
+.hd-measure-date { font-size: 9px; letter-spacing: .14em; color: rgba(255,255,255,0.20); text-align: center; }
+
+/* ── Supplements ── */
+.hd-supp-list { display: flex; flex-direction: column; gap: 6px; }
+.hd-supp-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 10px; border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.05);
+  background: rgba(255,255,255,0.02);
+  transition: border-color .15s;
+}
+.hd-supp-item.taken {
+  border-color: rgba(245,158,11,0.20);
+  background: rgba(245,158,11,0.05);
+}
+.hd-supp-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.hd-supp-name { flex: 1; font-size: 12px; color: rgba(255,255,255,0.75); }
+.hd-supp-dose { font-size: 9px; letter-spacing: .10em; color: rgba(255,255,255,0.30); }
+.hd-supp-check { font-size: 11px; color: #f59e0b; font-weight: 700; }
+
+/* ── Responsive ── */
+@media (max-width: 1200px) {
+  .hd-kpi-strip { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 860px) {
+  .hd-kpi-strip { grid-template-columns: repeat(2, 1fr); }
+}

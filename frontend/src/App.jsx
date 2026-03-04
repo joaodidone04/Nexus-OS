@@ -6,10 +6,7 @@ import LoginScreen from "./screens/LoginScreen/LoginScreen";
 import NexusStations from "./screens/NexusStations/NexusStations";
 import MissionsStation from "./stations/MissionsStations/MissionsStation";
 import FinanceStation from "./stations/FinanceStation/FinanceStations";
-
-function HealthStation() {
-  return <div style={{ padding: 40 }}>Health Station</div>;
-}
+import HealthStation from "./stations/HealthStation/HealthStation";
 
 export default function App() {
   const navigate = useNavigate();

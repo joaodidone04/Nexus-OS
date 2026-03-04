@@ -1,11 +1,9 @@
 /* ══════════════════════════════════════════════
-   NΞXUS — MISSIONS STATION
+   NΞXUS — MISSIONS STATION  (responsive)
    ══════════════════════════════════════════════ */
 
-/* position:fixed garante tela cheia sobre o layout pai (topbar do app) */
 .ms-root {
-  position: fixed;
-  inset: 0;
+  position: fixed; inset: 0;
   display: grid;
   grid-template-columns: 260px 1fr;
   overflow: hidden;
@@ -14,377 +12,241 @@
   z-index: 10;
 }
 
-/* ══════════════════════════════════════════════
+/* ──────────────────────────────────────────────
    SIDEBAR
-   ══════════════════════════════════════════════ */
+   ────────────────────────────────────────────── */
 .ms-sidebar {
-  display: flex;
-  flex-direction: column;
+  display: flex; flex-direction: column;
   border-right: 1px solid rgba(255,255,255,0.05);
   background: rgba(255,255,255,0.018);
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow-y: auto; overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
 }
 .ms-sidebar::-webkit-scrollbar { width: 3px; }
 .ms-sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.07); border-radius: 999px; }
 
 .ms-sidebar-top {
-  padding: 16px 12px 12px 12px;
+  padding: 14px 12px 12px 12px;
   border-bottom: 1px solid rgba(255,255,255,0.04);
 }
-
 .ms-back-hub {
-  height: 30px;
-  padding: 0 12px;
-  border-radius: 8px;
-  border: 1px solid rgba(255,255,255,0.07);
-  background: transparent;
-  color: rgba(255,255,255,0.38);
-  font-size: 9px;
-  letter-spacing: .18em;
-  cursor: pointer;
-  font-family: inherit;
-  transition: all .15s ease;
+  height: 36px; padding: 0 14px; border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.07); background: transparent;
+  color: rgba(255,255,255,0.38); font-size: 9px; letter-spacing: .18em;
+  cursor: pointer; font-family: inherit; transition: all .15s ease;
+  -webkit-tap-highlight-color: transparent;
 }
-.ms-back-hub:hover {
-  color: rgba(255,255,255,0.82);
-  border-color: rgba(255,255,255,0.14);
+.ms-back-hub:hover, .ms-back-hub:active {
+  color: rgba(255,255,255,0.82); border-color: rgba(255,255,255,0.14);
   background: rgba(255,255,255,0.04);
 }
 
 .ms-side-label {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  display: flex; align-items: center; justify-content: space-between;
   padding: 14px 12px 8px 12px;
-  font-size: 9px;
-  letter-spacing: .26em;
-  color: rgba(255,255,255,0.20);
-  font-family: inherit;
+  font-size: 9px; letter-spacing: .26em; color: rgba(255,255,255,0.20);
 }
-
 .ms-gear {
-  width: 26px;
-  height: 26px;
-  border-radius: 8px;
-  border: 1px solid rgba(255,255,255,0.07);
-  background: transparent;
-  color: rgba(255,255,255,0.28);
-  cursor: pointer;
-  font-size: 12px;
-  display: grid;
-  place-items: center;
-  font-family: inherit;
-  transition: all .15s ease;
-}
-.ms-gear:hover {
-  color: rgba(255,255,255,0.78);
-  border-color: rgba(255,255,255,0.14);
+  width: 32px; height: 32px; border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.07); background: transparent;
+  color: rgba(255,255,255,0.28); cursor: pointer; font-size: 13px;
+  display: grid; place-items: center; font-family: inherit;
 }
 
-.ms-side-stations {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  padding: 0 8px 14px 8px;
-}
-
+.ms-side-stations { display: flex; flex-direction: column; gap: 3px; padding: 0 8px 14px 8px; }
 .ms-side-station {
-  height: 34px;
-  padding: 0 12px;
-  border-radius: 9px;
-  border: 1px solid rgba(255,255,255,0.05);
-  background: transparent;
-  color: rgba(255,255,255,0.40);
-  font-size: 9px;
-  letter-spacing: .18em;
-  cursor: pointer;
-  font-family: inherit;
-  text-align: left;
-  transition: all .15s ease;
+  height: 40px; padding: 0 12px; border-radius: 9px;
+  border: 1px solid rgba(255,255,255,0.05); background: transparent;
+  color: rgba(255,255,255,0.40); font-size: 9px; letter-spacing: .18em;
+  cursor: pointer; font-family: inherit; text-align: left;
+  -webkit-tap-highlight-color: transparent;
 }
-.ms-side-station:hover {
-  color: rgba(255,255,255,0.78);
-  background: rgba(255,255,255,0.035);
+.ms-side-station:hover, .ms-side-station:active {
+  color: rgba(255,255,255,0.78); background: rgba(255,255,255,0.035);
 }
-.ms-side-station.is-active {
-  font-weight: 700;
-  /* colors set inline */
-}
+.ms-side-station.is-active { font-weight: 700; }
 
-/* Profile card */
 .ms-profile {
-  margin: 0 8px 8px 8px;
-  border-radius: 12px;
+  margin: 0 8px 8px 8px; border-radius: 12px;
   border: 1px solid rgba(255,255,255,0.06);
   border-left: 2px solid var(--profile-color, #7c3aed);
-  background: rgba(255,255,255,0.02);
-  padding: 10px 12px;
+  background: rgba(255,255,255,0.02); padding: 10px 12px;
 }
-
-.ms-profile-left {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
+.ms-profile-left { display: flex; align-items: center; gap: 10px; }
 .ms-avatar {
-  width: 34px;
-  height: 34px;
-  border-radius: 9px;
-  border: 1px solid rgba(255,255,255,0.07);
-  background: rgba(255,255,255,0.04);
-  display: grid;
-  place-items: center;
-  font-size: 16px;
-  flex-shrink: 0;
-  overflow: hidden;
+  width: 34px; height: 34px; border-radius: 9px;
+  border: 1px solid rgba(255,255,255,0.07); background: rgba(255,255,255,0.04);
+  display: grid; place-items: center; font-size: 16px; flex-shrink: 0; overflow: hidden;
 }
 .ms-avatar img { width: 100%; height: 100%; object-fit: cover; }
-
 .ms-profile-meta { flex: 1; min-width: 0; }
-
 .ms-profile-name {
-  font-size: 11px;
-  font-weight: 700;
-  color: rgba(255,255,255,0.88);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  margin-bottom: 3px;
+  font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.88);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 3px;
 }
-
 .ms-profile-sub {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 9px;
-  color: rgba(255,255,255,0.30);
-  letter-spacing: .12em;
-  margin-bottom: 6px;
+  display: flex; align-items: center; gap: 8px; font-size: 9px;
+  color: rgba(255,255,255,0.30); letter-spacing: .12em; margin-bottom: 6px;
 }
 .ms-xp { color: var(--profile-color, #7c3aed); }
+.ms-xpbar { height: 2px; border-radius: 999px; background: rgba(255,255,255,0.06); overflow: hidden; }
+.ms-xpbar-fill { height: 100%; border-radius: 999px; background: var(--profile-color, #7c3aed); }
 
-.ms-xpbar {
-  height: 2px;
-  border-radius: 999px;
-  background: rgba(255,255,255,0.06);
-  overflow: hidden;
-}
-.ms-xpbar-fill {
-  height: 100%;
-  border-radius: 999px;
-  background: var(--profile-color, #7c3aed);
-  transition: width .4s ease;
-}
-
-/* Calendar */
 .ms-calendar {
-  margin: 0 8px 8px 8px;
-  border-radius: 12px;
-  border: 1px solid rgba(255,255,255,0.05);
-  background: rgba(255,255,255,0.015);
-  overflow: hidden;
+  margin: 0 8px 8px 8px; border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.05); background: rgba(255,255,255,0.015); overflow: hidden;
 }
-
-/* Station tag */
 .ms-station-tag {
-  margin-top: auto;
-  padding: 10px 12px;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 8px;
-  letter-spacing: .26em;
-  color: rgba(255,255,255,0.14);
+  margin-top: auto; padding: 10px 12px;
+  display: flex; align-items: center; gap: 5px;
+  font-size: 8px; letter-spacing: .26em; color: rgba(255,255,255,0.14);
   border-top: 1px solid rgba(255,255,255,0.04);
-  font-family: inherit;
 }
 .ms-station-dot { font-size: 6px; }
 
-/* ══════════════════════════════════════════════
+/* ──────────────────────────────────────────────
    MAIN
-   ══════════════════════════════════════════════ */
-.ms-main {
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
+   ────────────────────────────────────────────── */
+.ms-main { display: flex; flex-direction: column; overflow: hidden; }
 
-/* Header — compact, single row */
 .ms-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 20px;
-  height: 58px;
-  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 16px; height: 54px; flex-shrink: 0;
   border-bottom: 1px solid rgba(255,255,255,0.05);
   border-left: 3px solid var(--mod-color, #7c3aed);
-  background: rgba(255,255,255,0.012);
-  gap: 16px;
+  background: rgba(255,255,255,0.012); gap: 12px;
 }
-
-.ms-header-left {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  min-width: 0;
-}
-
-.ms-logo {
-  font-size: 17px;
-  font-weight: 900;
-  letter-spacing: .06em;
-  color: rgba(255,255,255,0.90);
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.ms-header-divider {
-  width: 1px;
-  height: 20px;
-  background: rgba(255,255,255,0.07);
-  flex-shrink: 0;
-}
-
-.ms-header-meta {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-
-.ms-date {
-  font-size: 10px;
-  color: rgba(255,255,255,0.45);
-  letter-spacing: .10em;
-  white-space: nowrap;
-}
-
-.ms-header-module {
-  font-size: 8px;
-  letter-spacing: .20em;
-  color: rgba(255,255,255,0.22);
-  text-transform: uppercase;
-}
+.ms-header-left { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.ms-logo { font-size: 16px; font-weight: 900; letter-spacing: .06em; color: rgba(255,255,255,0.90); white-space: nowrap; flex-shrink: 0; }
+.ms-header-divider { width: 1px; height: 20px; background: rgba(255,255,255,0.07); flex-shrink: 0; }
+.ms-header-meta { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.ms-date { font-size: 10px; color: rgba(255,255,255,0.45); letter-spacing: .10em; white-space: nowrap; }
+.ms-header-module { font-size: 8px; letter-spacing: .20em; color: rgba(255,255,255,0.22); text-transform: uppercase; }
 .ms-header-module span { font-weight: 700; }
 
 .ms-new-mission {
-  height: 34px;
-  padding: 0 16px;
-  border-radius: 9px;
+  height: 36px; padding: 0 14px; border-radius: 9px;
   border: 1px solid color-mix(in srgb, var(--mod-color, #7c3aed) 50%, transparent);
   background: color-mix(in srgb, var(--mod-color, #7c3aed) 15%, transparent);
-  color: rgba(255,255,255,0.88);
-  font-size: 9px;
-  letter-spacing: .20em;
-  cursor: pointer;
-  font-family: inherit;
-  white-space: nowrap;
-  flex-shrink: 0;
-  transition: all .15s ease;
-}
-.ms-new-mission:hover {
-  background: color-mix(in srgb, var(--mod-color, #7c3aed) 28%, transparent);
-  transform: translateY(-1px);
+  color: rgba(255,255,255,0.88); font-size: 9px; letter-spacing: .20em;
+  cursor: pointer; font-family: inherit; white-space: nowrap; flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
 }
 
-/* Board */
 .ms-board {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  padding: 12px;
-  flex: 1;
-  overflow: hidden;
-  min-height: 0;
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 10px; padding: 12px; flex: 1; overflow: hidden; min-height: 0;
 }
-
 .ms-col {
-  display: flex;
-  flex-direction: column;
-  border-radius: 14px;
-  border: 1px solid rgba(255,255,255,0.05);
-  background: rgba(255,255,255,0.016);
-  overflow: hidden;
-  min-height: 0;
+  display: flex; flex-direction: column; border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.05); background: rgba(255,255,255,0.016);
+  overflow: hidden; min-height: 0;
 }
-
 .ms-col-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 12px;
-  border-bottom: 1px solid rgba(255,255,255,0.045);
-  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,0.045); flex-shrink: 0;
 }
-
-.ms-col-title {
-  font-size: 9px;
-  letter-spacing: .24em;
-  color: rgba(255,255,255,0.35);
-  font-family: inherit;
-}
-
+.ms-col-title { font-size: 9px; letter-spacing: .24em; color: rgba(255,255,255,0.35); }
 .ms-col-count {
-  font-size: 9px;
-  font-weight: 700;
-  color: rgba(255,255,255,0.18);
-  min-width: 16px;
-  height: 16px;
-  border-radius: 5px;
-  background: rgba(255,255,255,0.05);
-  display: grid;
-  place-items: center;
-  font-family: inherit;
+  font-size: 9px; font-weight: 700; color: rgba(255,255,255,0.18);
+  min-width: 16px; height: 16px; border-radius: 5px;
+  background: rgba(255,255,255,0.05); display: grid; place-items: center;
 }
-
 .ms-col-list {
-  flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding: 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
+  flex: 1; overflow-y: auto; overflow-x: hidden; padding: 8px;
+  display: flex; flex-direction: column; gap: 7px;
+  -webkit-overflow-scrolling: touch;
 }
 .ms-col-list::-webkit-scrollbar { width: 3px; }
 .ms-col-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.06); border-radius: 999px; }
-
 .ms-col-empty {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 9px;
-  letter-spacing: .22em;
-  color: rgba(255,255,255,0.09);
-  font-family: inherit;
-  padding: 40px 0;
-  pointer-events: none;
-  user-select: none;
+  flex: 1; display: flex; align-items: center; justify-content: center;
+  font-size: 9px; letter-spacing: .22em; color: rgba(255,255,255,0.09);
+  padding: 40px 0; pointer-events: none; user-select: none;
 }
 
-/* ══════════════════════════════════════════════
-   RESPONSIVE
-   ══════════════════════════════════════════════ */
+/* ──────────────────────────────────────────────
+   RESPONSIVE — TABLET (max 900px)
+   ────────────────────────────────────────────── */
 @media (max-width: 900px) {
   .ms-root {
     grid-template-columns: 1fr;
     grid-template-rows: auto 1fr;
     overflow: auto;
+    -webkit-overflow-scrolling: touch;
   }
+
+  /* Sidebar vira topbar horizontal */
   .ms-sidebar {
     flex-direction: row;
     flex-wrap: wrap;
-    height: auto;
+    height: auto; max-height: none;
     overflow: visible;
     border-right: none;
     border-bottom: 1px solid rgba(255,255,255,0.05);
+    padding: 8px;
+    gap: 6px;
+    align-items: center;
   }
+
+  .ms-sidebar-top {
+    padding: 0;
+    border-bottom: none;
+    flex-shrink: 0;
+  }
+
+  /* Esconde elementos pesados na versão horizontal */
+  .ms-profile, .ms-calendar, .ms-station-tag { display: none; }
+
+  .ms-side-label {
+    padding: 0 4px;
+    font-size: 8px;
+  }
+
+  .ms-side-stations {
+    flex-direction: row;
+    flex-wrap: wrap;
+    padding: 0;
+    gap: 4px;
+  }
+  .ms-side-station {
+    height: 32px;
+    padding: 0 10px;
+    font-size: 8px;
+  }
+
   .ms-board {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
     overflow: auto;
+    -webkit-overflow-scrolling: touch;
+    min-height: 400px;
   }
+}
+
+/* ──────────────────────────────────────────────
+   RESPONSIVE — MOBILE (max 640px)
+   ────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  /* Header da estação — compacto */
+  .ms-header { padding: 0 12px; height: 50px; gap: 8px; }
+  .ms-header-divider, .ms-header-meta { display: none; }
+  .ms-logo { font-size: 14px; }
+  .ms-new-mission { height: 32px; padding: 0 10px; font-size: 8px; letter-spacing: .12em; }
+
+  /* Board vira coluna única */
+  .ms-board { grid-template-columns: 1fr; gap: 8px; padding: 8px; }
+
+  /* Sidebar horizontal simplificada */
+  .ms-side-stations { gap: 4px; }
+  .ms-side-station { height: 36px; padding: 0 12px; }
+  .ms-gear { width: 36px; height: 36px; }
+  .ms-back-hub { height: 36px; }
+}
+
+/* ──────────────────────────────────────────────
+   RESPONSIVE — MOBILE PEQUENO (max 380px)
+   ────────────────────────────────────────────── */
+@media (max-width: 380px) {
+  .ms-logo { display: none; }
+  .ms-new-mission { letter-spacing: 0; padding: 0 8px; }
 }

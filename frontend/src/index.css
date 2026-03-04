@@ -1,190 +1,393 @@
-/* =========================================
-   NΞXUS // GLOBAL TOKENS
-   ========================================= */
-:root{
-  --deep-black: #06070b;
-  --neon-blue: #3b82f6;
+/* ═══════════════════════════════════════════════════════════
+   NΞXUS // GLOBAL — tokens, reset, scrolls, inputs, pickers
+   ═══════════════════════════════════════════════════════════ */
 
-  /* Sidebar width used by topbar offset */
-  --ms-sidebar-w: 340px;
+/* ─────────────────────────────────────────────────────────
+   TOKENS
+   ───────────────────────────────────────────────────────── */
+:root {
+  --deep-black:  #020205;
+  --surface:     rgba(255,255,255,0.025);
+  --border:      rgba(255,255,255,0.08);
+  --border-focus: rgba(59,130,246,0.55);
+  --neon-blue:   #3b82f6;
+  --text:        rgba(255,255,255,0.88);
+  --muted:       rgba(255,255,255,0.35);
+  --faint:       rgba(255,255,255,0.07);
+  --touch-min:   44px;
+  --radius-sm:   8px;
+  --radius-md:   12px;
+  --radius-lg:   16px;
+
+  /* Scrollbar */
+  --sb-track:       rgba(255,255,255,0.03);
+  --sb-thumb:       rgba(255,255,255,0.10);
+  --sb-thumb-hover: rgba(255,255,255,0.20);
+  --sb-size:        5px;
+
+  /* Input */
+  --input-bg:     rgba(0,0,0,0.40);
+  --input-border: rgba(255,255,255,0.09);
+  --input-height: 46px;
+  --input-radius: 12px;
+  --input-font:   13px;
 }
 
-/* =========================================
-   GLOBAL RESET (essencial p/ responsivo + scroll)
-   ========================================= */
-*,
-*::before,
-*::after{
-  box-sizing: border-box;
-}
+/* ─────────────────────────────────────────────────────────
+   RESET
+   ───────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; width: 100%; }
 
-html, body{
-  height: 100%;
-  width: 100%;
-}
-
-body{
-  margin: 0;
-  min-height: 100%;
+body {
   background: var(--deep-black);
-  color: rgba(255,255,255,0.92);
-
-  /* ✅ scroll normal no eixo Y */
+  color: var(--text);
   overflow-x: hidden;
   overflow-y: auto;
-
-  /* evita “pulos” de layout quando aparece scrollbar */
-  scrollbar-gutter: stable;
-
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-gutter: stable;
+}
+body.is-scroll-locked { overflow: hidden !important; }
+#root { min-height: 100%; width: 100%; }
+
+
+/* ═══════════════════════════════════════════════════════════
+   SCROLLBARS — estilo unificado para TODO o app
+   ═══════════════════════════════════════════════════════════ */
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--sb-thumb) var(--sb-track);
 }
 
-/* ✅ quando quiser travar scroll (ex: modal aberto), usa essa classe no body */
-body.is-scroll-locked{
-  overflow: hidden !important;
+/* Webkit (Chrome / Safari / Edge) */
+::-webkit-scrollbar              { width: var(--sb-size); height: var(--sb-size); }
+::-webkit-scrollbar-track        { background: var(--sb-track); border-radius: 999px; }
+::-webkit-scrollbar-thumb        { background: var(--sb-thumb); border-radius: 999px; transition: background .2s; }
+::-webkit-scrollbar-thumb:hover  { background: var(--sb-thumb-hover); }
+::-webkit-scrollbar-corner       { background: transparent; }
+
+/* Scrollbar ultrafina (3px) para listas e painéis internos */
+.ms-col-list::-webkit-scrollbar,
+.ms-sidebar::-webkit-scrollbar,
+.fs-main-inner::-webkit-scrollbar,
+.fs-sidebar::-webkit-scrollbar,
+.fs-cat-list::-webkit-scrollbar,
+.nx-ach-list::-webkit-scrollbar,
+.nx-modal::-webkit-scrollbar,
+.hs-module-body::-webkit-scrollbar {
+  width: 3px;
 }
 
-#root{
-  min-height: 100%;
-  width: 100%;
-  background: transparent;
+
+/* ═══════════════════════════════════════════════════════════
+   INPUTS — text, number, email, password, search, tel, url
+   ═══════════════════════════════════════════════════════════ */
+
+input[type="text"],
+input[type="number"],
+input[type="email"],
+input[type="password"],
+input[type="search"],
+input[type="tel"],
+input[type="url"],
+textarea,
+select {
+  -webkit-appearance: none;
+  -moz-appearance:    none;
+  appearance:         none;
+  display:       block;
+  width:         100%;
+  box-sizing:    border-box;
+  height:        var(--input-height);
+  padding:       0 14px;
+  border-radius: var(--input-radius);
+  border:        1px solid var(--input-border);
+  background:    var(--input-bg);
+  color:         var(--text);
+  font-family:   inherit;
+  font-size:     var(--input-font);
+  letter-spacing: .06em;
+  outline:       none;
+  transition:    border-color .18s ease, box-shadow .18s ease, background .18s ease;
 }
 
-/* Wrapper de fundo (camada fixa atrás de tudo) */
-.nx-bg{
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background:
-    radial-gradient(900px 700px at 50% 45%, rgba(88, 160, 255, 0.12), transparent 60%),
-    radial-gradient(700px 500px at 20% 20%, rgba(168, 85, 247, 0.10), transparent 60%),
-    radial-gradient(800px 600px at 80% 70%, rgba(34, 197, 94, 0.06), transparent 65%),
-    linear-gradient(180deg, #05060a 0%, #070914 40%, #05060a 100%);
+/* Foco — glow azul sutil */
+input[type="text"]:focus,
+input[type="number"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="search"]:focus,
+input[type="tel"]:focus,
+input[type="url"]:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--border-focus);
+  box-shadow:   0 0 0 3px rgba(59,130,246,0.10);
+  background:   rgba(0,0,0,0.55);
 }
 
-/* GRID sutil */
-.nx-bg::before{
-  content: "";
-  position: absolute;
-  inset: 0;
-  opacity: 0.18;
-  background-image:
-    linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px);
-  background-size: 60px 60px;
-  filter: blur(0.2px);
-  animation: grid-drift 60s linear infinite;
+/* Placeholder */
+::placeholder {
+  color: rgba(255,255,255,0.20);
+  letter-spacing: .10em;
 }
 
-/* Vinheta */
-.nx-bg::after{
-  content: "";
-  position: absolute;
-  inset: -20%;
-  background:
-    radial-gradient(550px 550px at 50% 45%, rgba(88,160,255,0.16), transparent 60%),
-    radial-gradient(320px 320px at 50% 45%, rgba(168,85,247,0.10), transparent 62%),
-    radial-gradient(1200px 900px at 50% 50%, rgba(0,0,0,0.10), rgba(0,0,0,0.75) 65%, rgba(0,0,0,0.92) 90%);
+/* Textarea */
+textarea {
+  height:      auto;
+  min-height:  80px;
+  padding:     12px 14px;
+  resize:      vertical;
+  line-height: 1.55;
 }
 
-.nx-neural-orb{
-  position: absolute;
-  left: 50%;
-  top: 45%;
-  width: 520px;
-  height: 520px;
-  transform: translate(-50%, -50%);
+/* Number — remove spinners nativos */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+input[type="number"] { -moz-appearance: textfield; }
+
+/* Search — remove ícone nativo */
+input[type="search"]::-webkit-search-decoration,
+input[type="search"]::-webkit-search-cancel-button { -webkit-appearance: none; }
+
+/* Password — remove botão reveal do Edge/IE */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear { display: none; }
+
+/* Disabled */
+input:disabled, textarea:disabled, select:disabled {
+  opacity: .40; cursor: not-allowed;
+}
+
+/* Evita zoom automático em iOS */
+@media (max-width: 768px) {
+  input, select, textarea { font-size: 16px !important; }
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   SELECT — seta customizada
+   ═══════════════════════════════════════════════════════════ */
+select {
+  padding-right: 36px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.32)' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat:   no-repeat;
+  background-position: right 10px center;
+  background-size:     16px;
+  cursor: pointer;
+}
+select option          { background: #0d0d18; color: rgba(255,255,255,0.88); }
+select option:checked  { background: rgba(59,130,246,0.25); }
+
+
+/* ═══════════════════════════════════════════════════════════
+   DATE / TIME / DATETIME-LOCAL PICKERS
+   ═══════════════════════════════════════════════════════════ */
+
+input[type="date"],
+input[type="time"],
+input[type="datetime-local"],
+input[type="month"],
+input[type="week"] {
+  -webkit-appearance: none;
+  appearance:         none;
+  display:       block;
+  width:         100%;
+  box-sizing:    border-box;
+  height:        var(--input-height);
+  padding:       0 14px;
+  border-radius: var(--input-radius);
+  border:        1px solid var(--input-border);
+  background:    var(--input-bg);
+  color:         var(--text);
+  font-family:   inherit;
+  font-size:     var(--input-font);
+  letter-spacing: .06em;
+  outline:       none;
+  cursor:        pointer;
+  /* Faz o popup do browser usar tema escuro no Chromium ≥ 121 */
+  color-scheme:  dark;
+  transition:    border-color .18s ease, box-shadow .18s ease;
+}
+
+input[type="date"]:focus,
+input[type="time"]:focus,
+input[type="datetime-local"]:focus,
+input[type="month"]:focus,
+input[type="week"]:focus {
+  border-color: var(--border-focus);
+  box-shadow:   0 0 0 3px rgba(59,130,246,0.10);
+}
+
+/* Ícone de calendário / relógio — inverte pra branco acinzentado */
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator,
+input[type="month"]::-webkit-calendar-picker-indicator,
+input[type="week"]::-webkit-calendar-picker-indicator {
+  filter:       invert(1) opacity(0.35);
+  cursor:       pointer;
+  padding:      4px;
+  border-radius: 4px;
+  transition:   filter .15s ease;
+}
+input[type="date"]:hover::-webkit-calendar-picker-indicator,
+input[type="time"]:hover::-webkit-calendar-picker-indicator,
+input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator {
+  filter: invert(1) opacity(0.70);
+}
+
+/* Cor do texto editável interno (Chrome) */
+input[type="date"]::-webkit-datetime-edit,
+input[type="time"]::-webkit-datetime-edit,
+input[type="datetime-local"]::-webkit-datetime-edit        { color: var(--text); }
+
+input[type="date"]::-webkit-datetime-edit-fields-wrapper,
+input[type="time"]::-webkit-datetime-edit-fields-wrapper,
+input[type="datetime-local"]::-webkit-datetime-edit-fields-wrapper { padding: 0; }
+
+/* Separadores "/ :" ficam mais discretos */
+input[type="date"]::-webkit-datetime-edit-text,
+input[type="time"]::-webkit-datetime-edit-text,
+input[type="datetime-local"]::-webkit-datetime-edit-text   { color: rgba(255,255,255,0.25); }
+
+/* Partes editáveis selecionadas */
+input[type="date"]::-webkit-datetime-edit-year-field:focus,
+input[type="date"]::-webkit-datetime-edit-month-field:focus,
+input[type="date"]::-webkit-datetime-edit-day-field:focus,
+input[type="time"]::-webkit-datetime-edit-hour-field:focus,
+input[type="time"]::-webkit-datetime-edit-minute-field:focus,
+input[type="datetime-local"]::-webkit-datetime-edit-hour-field:focus,
+input[type="datetime-local"]::-webkit-datetime-edit-minute-field:focus {
+  background:    rgba(59,130,246,0.28);
+  border-radius: 3px;
+  color:         #fff;
+  outline:       none;
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   RANGE SLIDER
+   ═══════════════════════════════════════════════════════════ */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%; height: 4px;
   border-radius: 999px;
+  background: rgba(255,255,255,0.08);
+  outline: none; cursor: pointer; border: none;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px; height: 16px; border-radius: 50%;
+  background: var(--neon-blue);
+  border: 2px solid rgba(255,255,255,0.15);
+  box-shadow: 0 0 8px rgba(59,130,246,0.50);
+  cursor: pointer;
+  transition: transform .15s, box-shadow .15s;
+}
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.2); box-shadow: 0 0 14px rgba(59,130,246,0.70);
+}
+input[type="range"]::-moz-range-thumb {
+  width: 16px; height: 16px; border-radius: 50%;
+  background: var(--neon-blue); border: 2px solid rgba(255,255,255,0.15);
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   CHECKBOX & RADIO
+   ═══════════════════════════════════════════════════════════ */
+input[type="checkbox"],
+input[type="radio"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px; height: 18px;
+  border: 1.5px solid rgba(255,255,255,0.18);
+  border-radius: 5px;
+  background: rgba(255,255,255,0.04);
+  cursor: pointer; flex-shrink: 0;
+  position: relative;
+  transition: border-color .15s, background .15s;
+}
+input[type="radio"] { border-radius: 50%; }
+
+input[type="checkbox"]:checked,
+input[type="radio"]:checked {
+  background: var(--neon-blue); border-color: var(--neon-blue);
+  box-shadow: 0 0 8px rgba(59,130,246,0.40);
+}
+input[type="checkbox"]:checked::after {
+  content: ""; position: absolute;
+  left: 4px; top: 1px; width: 5px; height: 9px;
+  border: 2px solid #fff; border-top: none; border-left: none;
+  transform: rotate(45deg);
+}
+input[type="radio"]:checked::after {
+  content: ""; position: absolute; inset: 4px;
+  border-radius: 50%; background: #fff;
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   BOTÕES — reset base (classes específicas sobrescrevem)
+   ═══════════════════════════════════════════════════════════ */
+button { font-family: inherit; cursor: pointer; border: none; background: transparent; color: inherit; padding: 0; }
+button:focus-visible { outline: 2px solid var(--neon-blue); outline-offset: 2px; border-radius: 4px; }
+
+
+/* ═══════════════════════════════════════════════════════════
+   SELEÇÃO DE TEXTO
+   ═══════════════════════════════════════════════════════════ */
+::selection { background: rgba(59,130,246,0.28); color: #fff; }
+
+
+/* ═══════════════════════════════════════════════════════════
+   GLASS UTILITIES
+   ═══════════════════════════════════════════════════════════ */
+.glass {
+  background: rgba(255,255,255,0.03);
+  backdrop-filter: blur(32px); -webkit-backdrop-filter: blur(32px);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+.glass-elevated {
+  background: rgba(255,255,255,0.05);
+  backdrop-filter: blur(48px); -webkit-backdrop-filter: blur(48px);
+  border: 1px solid rgba(255,255,255,0.12);
+  box-shadow: 0 24px 48px rgba(0,0,0,0.45);
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   TIPOGRAFIA
+   ═══════════════════════════════════════════════════════════ */
+.tech-font  { font-family: 'Chakra Petch', sans-serif; letter-spacing: 0.02em; }
+.data-font  { font-family: 'Rajdhani', sans-serif; }
+.brand-font { font-family: 'Chakra Petch', sans-serif; letter-spacing: 0.2em; font-weight: 700; }
+
+
+/* ═══════════════════════════════════════════════════════════
+   FUNDO GLOBAL
+   ═══════════════════════════════════════════════════════════ */
+.nx-bg {
+  position: fixed; inset: 0; z-index: -1; pointer-events: none;
   background:
-    radial-gradient(circle at 50% 50%, rgba(88,160,255,0.18), transparent 60%),
-    radial-gradient(circle at 40% 35%, rgba(168,85,247,0.12), transparent 62%);
-  opacity: 0.9;
-  animation: orb-pulse 6s infinite ease-in-out;
+    radial-gradient(ellipse 80% 60% at 50% -10%, rgba(59,130,246,0.08) 0%, transparent 70%),
+    radial-gradient(ellipse 60% 40% at 80% 100%, rgba(124,58,237,0.06) 0%, transparent 60%),
+    #05050a;
 }
 
-.nx-particles{
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
+
+/* ═══════════════════════════════════════════════════════════
+   MOBILE
+   ═══════════════════════════════════════════════════════════ */
+@media (max-width: 640px) {
+  .nx-particles, .nx-neural-orb { display: none; }
 }
-
-.nx-particles .particle{
-  position: absolute;
-  bottom: -20px;
-  width: 2px;
-  height: 2px;
-  border-radius: 999px;
-  background: rgba(255,255,255,0.35);
-  opacity: 0;
-  animation: float-particle var(--duration) linear infinite;
-  filter: drop-shadow(0 0 10px rgba(88,160,255,0.25));
-}
-
-/* =========================================
-   ANIMAÇÕES
-   ========================================= */
-@keyframes grid-drift{
-  from{ background-position: 0 0; }
-  to{ background-position: 50px 50px; }
-}
-
-@keyframes float-particle{
-  0%{ transform: translateY(0) translateX(0); opacity: 0; }
-  20%{ opacity: 0.4; }
-  80%{ opacity: 0.4; }
-  100%{ transform: translateY(-100vh) translateX(20px); opacity: 0; }
-}
-
-@keyframes orb-pulse{
-  0%, 100%{ transform: translate(-50%, -50%) scale(1); opacity: 0.3; }
-  50%{ transform: translate(-50%, -50%) scale(1.1); opacity: 0.4; }
-}
-
-/* Utilitárias */
-.animate-data-ring{ animation: data-ring 10s linear infinite; transform-origin: center; }
-@keyframes data-ring{ from{ transform: rotate(0deg);} to{ transform: rotate(360deg);} }
-
-/* =========================================
-   GLASS UTILITY
-   ========================================= */
-.glass,
-.glass-premium{
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(40px);
-  -webkit-backdrop-filter: blur(40px);
-  border: 1px solid rgba(255, 255, 255, 0.10);
-  box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
-}
-
-/* =========================================
-   MODAL BASE (ÚNICO)
-   ========================================= */
-.nx-modal-overlay{
-  position: fixed;
-  inset: 0;
-  z-index: 99999;
-  display: grid;
-  place-items: center;
-  padding: 18px;
-  background: rgba(0,0,0,0.62);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-}
-
-.nx-modal{
-  width: min(980px, calc(100vw - 28px));
-  max-height: calc(100vh - 28px);
-  overflow: hidden;
-  border-radius: 22px;
-  background: rgba(10,10,15,0.78);
-  border: 1px solid rgba(255,255,255,0.10);
-  box-shadow: 0 25px 60px rgba(0,0,0,0.55);
-}
-
-.nx-modal-body{
-  padding: 18px;
-  overflow: auto;
-  max-height: calc(100vh - 28px - 64px - 70px);
+@media (max-width: 768px) {
+  .ls-scanlines, .ns-scanlines, .hs-scanlines { opacity: 0.4; }
 }
