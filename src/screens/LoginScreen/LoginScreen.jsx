@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   streamProfilesLocal,
   createProfileLocal,
@@ -6,442 +6,400 @@ import {
 } from "../../services/profileStorage";
 import "./LoginScreen.css";
 
-// ✅ DEFAULT_STATIONS definido aqui (MVP)
 const DEFAULT_STATIONS = [
-  { id: "missions", name: "MISSÕES", xp: 0, level: 1 },
-  { id: "finance", name: "FINANCEIRO", xp: 0, level: 1 },
-  { id: "health", name: "SAÚDE", xp: 0, level: 1 },
+  { id: "missions",  name: "MISSÕES",    xp: 0, level: 1 },
+  { id: "finance",   name: "FINANCEIRO", xp: 0, level: 1 },
+  { id: "health",    name: "SAÚDE",      xp: 0, level: 1 },
 ];
 
+const isImageAvatar = (v) =>
+  typeof v === "string" && (v.startsWith("data:") || v.startsWith("http"));
+
+// ── Boot lines geradas uma vez ─────────────────────────────────────────────
+const BOOT_LINES = [
+  "NΞXUS OS v4.1.0 ............ [OK]",
+  "KERNEL MAINFRAME ............ [OK]",
+  "NEURAL INTERFACE ............ [OK]",
+  "ENCRYPTION LAYER AES-512 .... [OK]",
+  "BIOMETRIC MODULE ............ [OK]",
+  "PROFILE DATABASE ............ [OK]",
+  "AWAITING OPERATOR AUTH ......",
+];
+
+// ══════════════════════════════════════════════════════════════════════════
 export default function LoginScreen({ onSelectProfile }) {
-  // Boot / Transition
-  const [booting, setBooting] = useState(true);
-  const [bootFadeOut, setBootFadeOut] = useState(false);
-  const [contentVisible, setContentVisible] = useState(false);
+  // ── Boot ─────────────────────────────────────────────────────────────────
+  const [bootPhase, setBootPhase]   = useState("boot");   // boot | fadeout | ready
+  const [bootLine,  setBootLine]    = useState(0);
 
-  // Data
+  useEffect(() => {
+    // Anima as linhas de boot uma a uma
+    let idx = 0;
+    const interval = setInterval(() => {
+      idx++;
+      setBootLine(idx);
+      if (idx >= BOOT_LINES.length) clearInterval(interval);
+    }, 260);
+
+    // Inicia fadeout após 2.4s
+    const t1 = setTimeout(() => setBootPhase("fadeout"), 2400);
+    // Mostra conteúdo após 3.0s
+    const t2 = setTimeout(() => setBootPhase("ready"),   3000);
+
+    return () => { clearInterval(interval); clearTimeout(t1); clearTimeout(t2); };
+  }, []);
+
+  // ── Profiles ──────────────────────────────────────────────────────────────
   const [profiles, setProfiles] = useState([]);
-  const [step, setStep] = useState("selection"); // selection | password | create | delete_confirm
+  useEffect(() => {
+    const unsub = streamProfilesLocal((data) => setProfiles(data ?? []));
+    return () => unsub?.();
+  }, []);
 
-  const [newName, setNewName] = useState("");
-  const [newPass, setNewPass] = useState("");
-  const [newAvatar, setNewAvatar] = useState("👤");
+  // ── Step ──────────────────────────────────────────────────────────────────
+  // "select" | "password" | "create" | "delete"
+  const [step, setStep] = useState("select");
 
-  const [passInput, setPassInput] = useState("");
+  // ── Form state ────────────────────────────────────────────────────────────
   const [selectedProfile, setSelectedProfile] = useState(null);
+  const [passInput,        setPassInput]       = useState("");
+  const [showPass,         setShowPass]        = useState(false);
 
-  // show/hide
-  const [showLoginPass, setShowLoginPass] = useState(false);
-  const [showCreatePass, setShowCreatePass] = useState(false);
-  const [showDeletePass, setShowDeletePass] = useState(false);
+  const [newName,     setNewName]     = useState("");
+  const [newPass,     setNewPass]     = useState("");
+  const [newPassConf, setNewPassConf] = useState("");
+  const [newAvatar,   setNewAvatar]   = useState("👤");
+  const [showNewPass, setShowNewPass] = useState(false);
 
-  // delete flow
-  const [profileToDelete, setProfileToDelete] = useState(null);
-  const [deletePassInput, setDeletePassInput] = useState("");
-  const [deleteConfirmWord, setDeleteConfirmWord] = useState("");
+  const [deleteTarget,  setDeleteTarget]  = useState(null);
+  const [deletePass,    setDeletePass]    = useState("");
+  const [deleteWord,    setDeleteWord]    = useState("");
+  const [showDelPass,   setShowDelPass]   = useState(false);
 
-  const [error, setError] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error,       setError]       = useState("");
+  const [submitting,  setSubmitting]   = useState(false);
 
-  const fileInputRef = useRef(null);
+  const fileRef = useRef(null);
 
-  // Streams
-  useEffect(() => {
-    const unsubscribe = streamProfilesLocal((data) => setProfiles(data));
-    return () => unsubscribe();
-  }, []);
+  const clearError = () => setError("");
 
-  // Boot sequence: show for 2000ms, fade out 600ms, then show content
-  useEffect(() => {
-    const t1 = setTimeout(() => setBootFadeOut(true), 2000);
-    const t2 = setTimeout(() => {
-      setBooting(false);
-      requestAnimationFrame(() => setContentVisible(true));
-    }, 2600);
-
-    return () => {
-      clearTimeout(t1);
-      clearTimeout(t2);
-    };
-  }, []);
-
-  const resetForm = () => {
-    setNewName("");
-    setNewPass("");
-    setNewAvatar("👤");
-
-    setPassInput("");
+  const resetAll = () => {
     setSelectedProfile(null);
-
-    setShowLoginPass(false);
-    setShowCreatePass(false);
-    setShowDeletePass(false);
-
-    setProfileToDelete(null);
-    setDeletePassInput("");
-    setDeleteConfirmWord("");
-
-    setError("");
-    setIsSubmitting(false);
+    setPassInput(""); setShowPass(false);
+    setNewName(""); setNewPass(""); setNewPassConf(""); setNewAvatar("👤"); setShowNewPass(false);
+    setDeleteTarget(null); setDeletePass(""); setDeleteWord(""); setShowDelPass(false);
+    setError(""); setSubmitting(false);
   };
 
-  const isImageAvatar = (v) =>
-    typeof v === "string" && (v.startsWith("data:") || v.startsWith("http"));
+  const go = (s) => { resetAll(); setStep(s); };
 
-  const handleCreate = () => {
-    if (!newName.trim() || !newPass.trim()) {
-      setError("Identidade incompleta.");
-      return;
-    }
-
-    setIsSubmitting(true);
-    setError("");
-
-    try {
-      const profileData = {
-        name: newName.trim(),
-        avatar: newAvatar,
-        password: newPass,
-        level: 1,
-        xp: 0,
-        maxXp: 100,
-        stations: [...DEFAULT_STATIONS], // ✅ agora existe
-      };
-
-      createProfileLocal(profileData);
-
-      resetForm();
-      setStep("selection");
-    } catch (err) {
-      console.error("ERRO AO REGISTRAR:", err);
-      setError("Falha ao registrar.");
-    } finally {
-      setIsSubmitting(false);
-    }
+  // ── Handlers ──────────────────────────────────────────────────────────────
+  const handleSelectProfile = (p) => {
+    resetAll();
+    setSelectedProfile(p);
+    setStep("password");
   };
 
   const handleLogin = () => {
-    if (selectedProfile && passInput === selectedProfile.password) {
-      if (typeof onSelectProfile === "function") onSelectProfile(selectedProfile);
+    if (!selectedProfile) return;
+    if (passInput === selectedProfile.password) {
+      onSelectProfile?.(selectedProfile);
       return;
     }
-    setError("Chave inválida.");
-    setTimeout(() => setError(""), 2500);
+    setError("CHAVE INVÁLIDA — ACESSO NEGADO");
+    setTimeout(clearError, 2500);
   };
 
-  const openDelete = (profile) => {
-    setProfileToDelete(profile);
-    setDeletePassInput("");
-    setDeleteConfirmWord("");
+  const handleCreate = () => {
+    if (!newName.trim())       return setError("CODINOME OBRIGATÓRIO");
+    if (!newPass.trim())       return setError("CHAVE DE ACESSO OBRIGATÓRIA");
+    if (newPass !== newPassConf) return setError("CHAVES NÃO COINCIDEM");
+
+    setSubmitting(true);
     setError("");
-    setStep("delete_confirm");
+    try {
+      createProfileLocal({
+        name:     newName.trim(),
+        avatar:   newAvatar,
+        password: newPass,
+        level:    1,
+        xp:       0,
+        maxXp:    100,
+        stations: [...DEFAULT_STATIONS],
+      });
+      go("select");
+    } catch (e) {
+      console.error(e);
+      setError("FALHA AO REGISTRAR OPERADOR");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleOpenDelete = (p) => {
+    resetAll();
+    setDeleteTarget(p);
+    setStep("delete");
   };
 
   const handleDelete = () => {
-    if (!profileToDelete) return;
-
-    const confirmOk = deleteConfirmWord.trim().toUpperCase() === "EXCLUIR";
-    if (!confirmOk) {
-      setError('Digite "EXCLUIR" para confirmar.');
-      return;
-    }
-
-    if (deletePassInput !== profileToDelete.password) {
-      setError("Senha incorreta.");
-      return;
-    }
-
+    if (!deleteTarget) return;
+    if (deleteWord.trim().toUpperCase() !== "EXCLUIR")
+      return setError('DIGITE "EXCLUIR" PARA CONFIRMAR');
+    if (deletePass !== deleteTarget.password)
+      return setError("CHAVE INCORRETA");
     try {
-      deleteProfileLocal(profileToDelete.id);
-      resetForm();
-      setStep("selection");
-    } catch (err) {
-      console.error("ERRO AO EXCLUIR:", err);
-      setError("Falha ao excluir operador.");
+      deleteProfileLocal(deleteTarget.id);
+      go("select");
+    } catch (e) {
+      console.error(e);
+      setError("FALHA AO EXCLUIR OPERADOR");
     }
   };
 
+  // ── Avatar upload ─────────────────────────────────────────────────────────
+  const handleAvatarFile = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => setNewAvatar(reader.result);
+    reader.readAsDataURL(file);
+  };
+
+  // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <div className="login-root">
-      {/* Background layers globais */}
-      <div className="bg-base" />
-      <div className="bg-grid" />
-      <div className="vignette" />
+    <div className="ls-root">
+      {/* Background */}
+      <div className="ls-bg" />
+      <div className="ls-grid" />
+      <div className="ls-scanlines" />
+      <div className="ls-vignette" />
 
-      {/* BOOT */}
-      {booting && (
-        <>
-          <div className="boot-noise" />
-          <div className="boot-scanlines" />
-
-          <div className={`login-boot ${bootFadeOut ? "is-fadeout" : ""}`}>
-            <div className="login-boot-inner">
-              <div className="boot-orb" />
-              <div className="login-boot-text">
-                <div className="glitch" data-text="NΞXUS">
-                  NΞXUS
-                </div>
-                <div className="login-boot-sub">INITIALIZING SYSTEM INTERFACE</div>
+      {/* ── BOOT SCREEN ── */}
+      {bootPhase !== "ready" && (
+        <div className={`ls-boot${bootPhase === "fadeout" ? " is-out" : ""}`}>
+          <div className="ls-boot-orb" />
+          <div className="ls-boot-logo">NΞXUS</div>
+          <div className="ls-boot-lines">
+            {BOOT_LINES.slice(0, bootLine).map((line, i) => (
+              <div key={i} className="ls-boot-line data-font">
+                <span className="ls-boot-prompt">{">"}</span>
+                {line}
+                {i === bootLine - 1 && <span className="ls-boot-cursor" />}
               </div>
-            </div>
+            ))}
           </div>
-        </>
+        </div>
       )}
 
-      {/* CONTENT */}
-      {!booting && (
-        <div className={`login-content ${contentVisible ? "is-visible" : ""}`}>
-          <div className="login-shell">
-            <h1 className="login-title brand-font">
-              NΞXUS<span className="login-dot">.</span>
-            </h1>
+      {/* ── MAIN CONTENT ── */}
+      {bootPhase === "ready" && (
+        <div className="ls-content">
 
-            {/* SELECTION */}
-            {step === "selection" && (
-              <div className="login-selection">
-                {profiles.map((profile) => (
-                  <div className="login-card-wrap" key={profile.id}>
+          {/* Logo */}
+          <div className="ls-logo-row">
+            <div className="ls-logo tech-font">NΞXUS</div>
+            <div className="ls-logo-sub tech-font">MAINFRAME INTERFACE v4.1</div>
+          </div>
+
+          {/* ── SELECT ── */}
+          {step === "select" && (
+            <div className="ls-panel">
+              <div className="ls-panel-title tech-font">SELECIONAR OPERADOR</div>
+
+              <div className="ls-profiles">
+                {profiles.length === 0 && (
+                  <div className="ls-empty data-font">NENHUM OPERADOR REGISTRADO</div>
+                )}
+
+                {profiles.map(p => (
+                  <div key={p.id} className="ls-profile-row">
                     <button
                       type="button"
-                      className="login-card"
-                      onClick={() => {
-                        setSelectedProfile(profile);
-                        setPassInput("");
-                        setError("");
-                        setStep("password");
-                      }}
+                      className="ls-profile-btn"
+                      onClick={() => handleSelectProfile(p)}
                     >
-                      <div className="login-avatar">
-                        {isImageAvatar(profile.avatar) ? (
-                          <img src={profile.avatar} alt="avatar" />
-                        ) : (
-                          <span>{typeof profile.avatar === "string" ? profile.avatar : "👤"}</span>
-                        )}
+                      <div className="ls-avatar-sm">
+                        {isImageAvatar(p.avatar)
+                          ? <img src={p.avatar} alt="avatar" />
+                          : <span>{typeof p.avatar === "string" ? p.avatar : "👤"}</span>}
                       </div>
-
-                      <div className="login-card-name">{profile.name}</div>
+                      <div className="ls-profile-info">
+                        <span className="ls-profile-name tech-font">{p.name}</span>
+                        <span className="ls-profile-level data-font">LV {p.level ?? 1}</span>
+                      </div>
+                      <span className="ls-profile-arrow">▶</span>
                     </button>
 
                     <button
                       type="button"
-                      className="login-card-delete"
+                      className="ls-profile-del"
                       title="Excluir operador"
-                      onClick={() => openDelete(profile)}
-                    >
-                      🗑️
-                    </button>
+                      onClick={() => handleOpenDelete(p)}
+                    >✕</button>
                   </div>
                 ))}
+              </div>
 
+              <button type="button" className="ls-add-btn tech-font" onClick={() => go("create")}>
+                <span>+</span> REGISTRAR NOVO OPERADOR
+              </button>
+            </div>
+          )}
+
+          {/* ── PASSWORD ── */}
+          {step === "password" && selectedProfile && (
+            <div className="ls-panel ls-panel--narrow">
+              <div className="ls-avatar-lg">
+                {isImageAvatar(selectedProfile.avatar)
+                  ? <img src={selectedProfile.avatar} alt="avatar" />
+                  : <span>{typeof selectedProfile.avatar === "string" ? selectedProfile.avatar : "👤"}</span>}
+              </div>
+
+              <div className="ls-panel-title tech-font">{selectedProfile.name}</div>
+              <div className="ls-panel-sub data-font">AUTENTICAÇÃO NECESSÁRIA</div>
+
+              <div className="ls-input-wrap">
+                <input
+                  className="ls-input tech-font"
+                  type={showPass ? "text" : "password"}
+                  value={passInput}
+                  onChange={e => { setPassInput(e.target.value); clearError(); }}
+                  onKeyDown={e => e.key === "Enter" && handleLogin()}
+                  placeholder="CHAVE DE ACESSO"
+                  autoFocus
+                />
                 <button
                   type="button"
-                  className="login-card-add"
-                  onClick={() => {
-                    resetForm();
-                    setStep("create");
-                  }}
-                >
-                  <div className="login-plus">+</div>
-                  <span className="login-add-label">Novo Operador</span>
+                  className="ls-eye"
+                  onClick={() => setShowPass(s => !s)}
+                >{showPass ? "○" : "●"}</button>
+              </div>
+
+              {error && <div className="ls-error tech-font">{error}</div>}
+
+              <div className="ls-actions">
+                <button type="button" className="ls-btn ls-btn--ghost tech-font" onClick={() => go("select")}>
+                  ← VOLTAR
+                </button>
+                <button type="button" className="ls-btn ls-btn--primary tech-font" onClick={handleLogin}>
+                  ACESSAR SISTEMA
                 </button>
               </div>
-            )}
+            </div>
+          )}
 
-            {/* PASSWORD */}
-            {step === "password" && selectedProfile && (
-              <div className="login-panel">
-                <div className="login-avatar big">
-                  {isImageAvatar(selectedProfile.avatar) ? (
-                    <img src={selectedProfile.avatar} alt="avatar" />
-                  ) : (
-                    <span>{typeof selectedProfile.avatar === "string" ? selectedProfile.avatar : "👤"}</span>
-                  )}
-                </div>
+          {/* ── CREATE ── */}
+          {step === "create" && (
+            <div className="ls-panel ls-panel--narrow">
+              <div className="ls-panel-title tech-font">REGISTRAR OPERADOR</div>
+              <div className="ls-panel-sub data-font">NOVO ACESSO AO MAINFRAME</div>
 
-                <div className="login-panel-title">{selectedProfile.name}</div>
-
-                <div className="login-input-row">
-                  <input
-                    className="login-input"
-                    type={showLoginPass ? "text" : "password"}
-                    value={passInput}
-                    onChange={(e) => setPassInput(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleLogin()}
-                    placeholder="CHAVE DE ACESSO"
-                    autoFocus
-                  />
-                  <button
-                    type="button"
-                    className="login-eye"
-                    onClick={() => setShowLoginPass((s) => !s)}
-                    title={showLoginPass ? "Ocultar senha" : "Mostrar senha"}
-                  >
-                    {showLoginPass ? "🙈" : "👁️"}
-                  </button>
-                </div>
-
-                {error && <div className="login-error">{error}</div>}
-
-                <div className="login-actions">
-                  <button
-                    type="button"
-                    className="login-btn ghost"
-                    onClick={() => {
-                      setStep("selection");
-                      resetForm();
-                    }}
-                  >
-                    Voltar
-                  </button>
-
-                  <button type="button" className="login-btn primary" onClick={handleLogin}>
-                    Acessar
-                  </button>
+              {/* Avatar */}
+              <div className="ls-avatar-edit">
+                <div className="ls-avatar-lg" onClick={() => fileRef.current?.click()} style={{ cursor: "pointer" }}>
+                  {isImageAvatar(newAvatar)
+                    ? <img src={newAvatar} alt="avatar" />
+                    : <span>{newAvatar}</span>}
+                  <div className="ls-avatar-overlay tech-font">FOTO</div>
                 </div>
               </div>
-            )}
+              <input type="file" ref={fileRef} accept="image/*" className="ls-hidden" onChange={handleAvatarFile} />
 
-            {/* CREATE */}
-            {step === "create" && (
-              <div className="login-panel">
-                <div className="login-avatar big">
-                  {isImageAvatar(newAvatar) ? (
-                    <img src={newAvatar} alt="avatar" />
-                  ) : (
-                    <span>{typeof newAvatar === "string" ? newAvatar : "👤"}</span>
-                  )}
-                </div>
+              <input
+                className="ls-input tech-font"
+                value={newName}
+                onChange={e => { setNewName(e.target.value); clearError(); }}
+                placeholder="CODINOME DO OPERADOR"
+                style={{ marginBottom: 8 }}
+              />
 
+              <div className="ls-input-wrap">
+                <input
+                  className="ls-input tech-font"
+                  type={showNewPass ? "text" : "password"}
+                  value={newPass}
+                  onChange={e => { setNewPass(e.target.value); clearError(); }}
+                  placeholder="CHAVE DE ACESSO"
+                />
+                <button type="button" className="ls-eye" onClick={() => setShowNewPass(s => !s)}>
+                  {showNewPass ? "○" : "●"}
+                </button>
+              </div>
+
+              <input
+                className="ls-input tech-font"
+                type="password"
+                value={newPassConf}
+                onChange={e => { setNewPassConf(e.target.value); clearError(); }}
+                onKeyDown={e => e.key === "Enter" && handleCreate()}
+                placeholder="CONFIRMAR CHAVE"
+                style={{ marginTop: 8 }}
+              />
+
+              {error && <div className="ls-error tech-font">{error}</div>}
+
+              <div className="ls-actions">
+                <button type="button" className="ls-btn ls-btn--ghost tech-font" onClick={() => go("select")}>
+                  ← CANCELAR
+                </button>
                 <button
                   type="button"
-                  className="login-link"
-                  onClick={() => fileInputRef.current?.click()}
+                  className="ls-btn ls-btn--primary tech-font"
+                  onClick={handleCreate}
+                  disabled={submitting}
                 >
-                  Mudar Avatar
+                  {submitting ? "INICIALIZANDO..." : "REGISTRAR"}
                 </button>
-
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  accept="image/*"
-                  className="login-hidden"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (!file) return;
-                    const reader = new FileReader();
-                    reader.onloadend = () => setNewAvatar(reader.result);
-                    reader.readAsDataURL(file);
-                  }}
-                />
-
-                <input
-                  className="login-input"
-                  value={newName}
-                  onChange={(e) => setNewName(e.target.value)}
-                  placeholder="CODINOME"
-                />
-
-                <div className="login-input-row">
-                  <input
-                    className="login-input"
-                    type={showCreatePass ? "text" : "password"}
-                    value={newPass}
-                    onChange={(e) => setNewPass(e.target.value)}
-                    placeholder="CHAVE DE ACESSO"
-                  />
-                  <button
-                    type="button"
-                    className="login-eye"
-                    onClick={() => setShowCreatePass((s) => !s)}
-                    title={showCreatePass ? "Ocultar senha" : "Mostrar senha"}
-                  >
-                    {showCreatePass ? "🙈" : "👁️"}
-                  </button>
-                </div>
-
-                {error && <div className="login-error">{error}</div>}
-
-                <div className="login-actions">
-                  <button
-                    type="button"
-                    className="login-btn ghost"
-                    onClick={() => {
-                      setStep("selection");
-                      resetForm();
-                    }}
-                  >
-                    Cancelar
-                  </button>
-
-                  <button
-                    type="button"
-                    className="login-btn primary"
-                    onClick={handleCreate}
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting ? "INICIALIZANDO..." : "REGISTRAR"}
-                  </button>
-                </div>
               </div>
-            )}
+            </div>
+          )}
 
-            {/* DELETE CONFIRM */}
-            {step === "delete_confirm" && profileToDelete && (
-              <div className="login-panel danger">
-                <div className="login-panel-title danger">Excluir Operador</div>
-
-                <div className="login-danger-hint">
-                  Você está prestes a excluir <b>{profileToDelete.name}</b>.
-                  <br />
-                  Digite <b>EXCLUIR</b> e informe a senha do operador.
-                </div>
-
-                <input
-                  className="login-input"
-                  value={deleteConfirmWord}
-                  onChange={(e) => setDeleteConfirmWord(e.target.value)}
-                  placeholder='Digite "EXCLUIR"'
-                />
-
-                <div className="login-input-row">
-                  <input
-                    className="login-input"
-                    type={showDeletePass ? "text" : "password"}
-                    value={deletePassInput}
-                    onChange={(e) => setDeletePassInput(e.target.value)}
-                    placeholder="Senha do operador"
-                  />
-                  <button
-                    type="button"
-                    className="login-eye"
-                    onClick={() => setShowDeletePass((s) => !s)}
-                    title={showDeletePass ? "Ocultar senha" : "Mostrar senha"}
-                  >
-                    {showDeletePass ? "🙈" : "👁️"}
-                  </button>
-                </div>
-
-                {error && <div className="login-error">{error}</div>}
-
-                <div className="login-actions">
-                  <button
-                    type="button"
-                    className="login-btn ghost"
-                    onClick={() => {
-                      setStep("selection");
-                      resetForm();
-                    }}
-                  >
-                    Voltar
-                  </button>
-
-                  <button type="button" className="login-btn danger" onClick={handleDelete}>
-                    EXCLUIR
-                  </button>
-                </div>
+          {/* ── DELETE ── */}
+          {step === "delete" && deleteTarget && (
+            <div className="ls-panel ls-panel--narrow ls-panel--danger">
+              <div className="ls-panel-title tech-font" style={{ color: "#f87171" }}>
+                EXCLUIR OPERADOR
               </div>
-            )}
-          </div>
+              <div className="ls-panel-sub data-font" style={{ color: "rgba(248,113,113,0.65)" }}>
+                {deleteTarget.name} — ESTA AÇÃO É IRREVERSÍVEL
+              </div>
+
+              <input
+                className="ls-input tech-font"
+                value={deleteWord}
+                onChange={e => { setDeleteWord(e.target.value); clearError(); }}
+                placeholder='DIGITE "EXCLUIR" PARA CONFIRMAR'
+                style={{ marginBottom: 8 }}
+              />
+
+              <div className="ls-input-wrap">
+                <input
+                  className="ls-input tech-font"
+                  type={showDelPass ? "text" : "password"}
+                  value={deletePass}
+                  onChange={e => { setDeletePass(e.target.value); clearError(); }}
+                  onKeyDown={e => e.key === "Enter" && handleDelete()}
+                  placeholder="CHAVE DO OPERADOR"
+                />
+                <button type="button" className="ls-eye" onClick={() => setShowDelPass(s => !s)}>
+                  {showDelPass ? "○" : "●"}
+                </button>
+              </div>
+
+              {error && <div className="ls-error tech-font">{error}</div>}
+
+              <div className="ls-actions">
+                <button type="button" className="ls-btn ls-btn--ghost tech-font" onClick={() => go("select")}>
+                  ← CANCELAR
+                </button>
+                <button type="button" className="ls-btn ls-btn--danger tech-font" onClick={handleDelete}>
+                  CONFIRMAR EXCLUSÃO
+                </button>
+              </div>
+            </div>
+          )}
+
         </div>
       )}
     </div>
