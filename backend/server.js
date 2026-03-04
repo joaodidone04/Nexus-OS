@@ -63,21 +63,23 @@ const upload = multer({ storage, limits: { fileSize: 10 * 1024 * 1024 } });
 const app = express();
 
 // ── CORS — libera Firebase + localhost ─────────────────────────────────────
+const allowedOrigins = new Set([
+  "https://nexus-app-d5b67.web.app",
+  "https://nexus-app-d5b67.firebaseapp.com",
+]);
+
 app.use(cors({
-  origin: [
-    "https://nexus-app-d5b67.web.app",
-    "https://nexus-app-d5b67.firebaseapp.com",
-    "http://localhost:5173",
-    "http://localhost:4173",
-    "http://localhost:3000",
-  ],
+  origin: (origin, cb) => {
+    if (!origin) return cb(null, true); // postman/curl
+    if (origin.startsWith("http://localhost:")) return cb(null, true);
+    if (origin.startsWith("http://127.0.0.1:")) return cb(null, true);
+    if (allowedOrigins.has(origin)) return cb(null, true);
+    return cb(new Error(`CORS bloqueado: ${origin}`));
+  },
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true,
 }));
-
-app.use(express.json());
-app.use("/uploads", express.static(IMG_DIR));
 
 // ══════════════════════════════════════════════════════════════════════════
 // DIETA
