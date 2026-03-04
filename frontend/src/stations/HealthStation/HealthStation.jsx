@@ -3,9 +3,8 @@
  * Módulos: Dieta · Treino · Medidas · Hidratação · Sono · Suplementos
  */
 import { useState, useEffect, useRef } from "react";
-import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
-import { useNexus } from "../../context/NexusContext";
+import { useAuth } from "../../context/AuthContext";              // ← trocado
 import "./HealthStation.css";
 import "./modules/DashboardModule.css";
 
@@ -22,70 +21,29 @@ import SupplementsModule from "./modules/SupplementsModule";
 export const API = "http://localhost:3001/api";
 
 const MODULES = [
-  {
-    id: "dashboard",
-    label: "DASHBOARD",
-    sublabel: "Visão Geral",
-    icon: "📊",
-    color: "#3b82f6",
-    accent: "#2563eb",
-  },
-  {
-    id: "diet",
-    label: "DIETA",
-    sublabel: "Nutrição & Macros",
-    icon: "🥗",
-    color: "#10b981",
-    accent: "#059669",
-  },
-  {
-    id: "workout",
-    label: "TREINO",
-    sublabel: "Sessões & Exercícios",
-    icon: "⚡",
-    color: "#3b82f6",
-    accent: "#2563eb",
-  },
-  {
-    id: "measures",
-    label: "MEDIDAS",
-    sublabel: "Biometria Corporal",
-    icon: "📐",
-    color: "#8b5cf6",
-    accent: "#7c3aed",
-  },
-  {
-    id: "hydration",
-    label: "HIDRATAÇÃO",
-    sublabel: "Consumo de Água",
-    icon: "💧",
-    color: "#06b6d4",
-    accent: "#0891b2",
-  },
-  {
-    id: "sleep",
-    label: "SONO",
-    sublabel: "Qualidade & Ciclos",
-    icon: "🌙",
-    color: "#6366f1",
-    accent: "#4f46e5",
-  },
-  {
-    id: "supplements",
-    label: "SUPLEMENTOS",
-    sublabel: "Doses & Lembretes",
-    icon: "💊",
-    color: "#f59e0b",
-    accent: "#d97706",
-  },
+  { id: "dashboard",   label: "DASHBOARD",   sublabel: "Visão Geral",          icon: "📊", color: "#3b82f6", accent: "#2563eb" },
+  { id: "diet",        label: "DIETA",        sublabel: "Nutrição & Macros",     icon: "🥗", color: "#10b981", accent: "#059669" },
+  { id: "workout",     label: "TREINO",       sublabel: "Sessões & Exercícios",  icon: "⚡", color: "#3b82f6", accent: "#2563eb" },
+  { id: "measures",    label: "MEDIDAS",      sublabel: "Biometria Corporal",    icon: "📐", color: "#8b5cf6", accent: "#7c3aed" },
+  { id: "hydration",   label: "HIDRATAÇÃO",   sublabel: "Consumo de Água",       icon: "💧", color: "#06b6d4", accent: "#0891b2" },
+  { id: "sleep",       label: "SONO",         sublabel: "Qualidade & Ciclos",    icon: "🌙", color: "#6366f1", accent: "#4f46e5" },
+  { id: "supplements", label: "SUPLEMENTOS",  sublabel: "Doses & Lembretes",     icon: "💊", color: "#f59e0b", accent: "#d97706" },
 ];
 
 // ─── Componente principal ──────────────────────────────────────────────────
 export default function HealthStation() {
   const navigate = useNavigate();
-  const { currentProfile } = useNexus();
+
+  // ── useAuth substitui useNexus ──────────────────────────────────────────
+  const { profile, firebaseUser } = useAuth();
+
+  // profileId: usa UID do Firebase (único e persistente)
+  const profileId    = firebaseUser?.uid || "default";
+  const operatorName = profile?.displayName || "OPERADOR";
+  const level        = profile?.level       || 1;
+
   const [activeModule, setActiveModule] = useState(null);
-  const [apiOnline, setApiOnline] = useState(null); // null = checking
+  const [apiOnline,    setApiOnline]    = useState(null);
 
   // Verifica se o backend está online
   useEffect(() => {
@@ -95,22 +53,24 @@ export default function HealthStation() {
       .catch(() => setApiOnline(false));
   }, []);
 
+  // ── Sub-tela de módulo ─────────────────────────────────────────────────
   if (activeModule) {
     const mod = MODULES.find(m => m.id === activeModule);
     return (
       <ModuleShell mod={mod} onBack={() => setActiveModule(null)}>
-        {activeModule === "dashboard"   && <DashboardModule   profileId={currentProfile?.id} color={mod.color} />}
-        {activeModule === "diet"        && <DietModule        profileId={currentProfile?.id} color={mod.color} />}
-        {activeModule === "workout"     && <WorkoutModule     profileId={currentProfile?.id} color={mod.color} />}
-        {activeModule === "measures"    && <MeasuresModule    profileId={currentProfile?.id} color={mod.color} />}
-        {activeModule === "hydration"   && <HydrationModule   profileId={currentProfile?.id} color={mod.color} />}
-        {activeModule === "sleep"       && <SleepModule       profileId={currentProfile?.id} color={mod.color} />}
-        {activeModule === "supplements" && <SupplementsModule profileId={currentProfile?.id} color={mod.color} />}
+        {/* profileId agora é o UID do Firebase — compatível com todos os módulos */}
+        {activeModule === "dashboard"   && <DashboardModule   profileId={profileId} color={mod.color} />}
+        {activeModule === "diet"        && <DietModule        profileId={profileId} color={mod.color} />}
+        {activeModule === "workout"     && <WorkoutModule     profileId={profileId} color={mod.color} />}
+        {activeModule === "measures"    && <MeasuresModule    profileId={profileId} color={mod.color} />}
+        {activeModule === "hydration"   && <HydrationModule   profileId={profileId} color={mod.color} />}
+        {activeModule === "sleep"       && <SleepModule       profileId={profileId} color={mod.color} />}
+        {activeModule === "supplements" && <SupplementsModule profileId={profileId} color={mod.color} />}
       </ModuleShell>
     );
   }
 
-  return createPortal(
+  return (
     <div className="hs-root">
       <div className="hs-bg" />
       <div className="hs-grid" />
@@ -156,11 +116,10 @@ export default function HealthStation() {
         </div>
 
         <footer className="hs-footer data-font">
-          OPERADOR: {currentProfile?.name?.toUpperCase() || "—"} · LV {currentProfile?.level ?? 1}
+          OPERADOR: {operatorName.toUpperCase()} · LV {level}
         </footer>
       </div>
-    </div>,
-    document.body
+    </div>
   );
 }
 
@@ -191,13 +150,7 @@ function ModuleCard({ mod, index, onClick, disabled }) {
       disabled={disabled}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      style={{
-        "--c": mod.color,
-        "--ca": mod.accent,
-        "--mx": "50%",
-        "--my": "50%",
-        animationDelay: `${index * 60}ms`,
-      }}
+      style={{ "--c": mod.color, "--ca": mod.accent, "--mx": "50%", "--my": "50%", animationDelay: `${index * 60}ms` }}
     >
       <div className="hs-mod-spotlight" />
       <div className="hs-mod-glow" />
@@ -215,7 +168,7 @@ function ModuleCard({ mod, index, onClick, disabled }) {
   );
 }
 
-// ─── Module Shell (wrapper para sub-telas) ────────────────────────────────
+// ─── Module Shell ─────────────────────────────────────────────────────────
 function ModuleShell({ mod, onBack, children }) {
   return (
     <div className="hs-root">
@@ -224,9 +177,7 @@ function ModuleShell({ mod, onBack, children }) {
       <div className="hs-scanlines" />
       <div className="hs-shell">
         <header className="hs-module-header">
-          <button className="hs-back tech-font" onClick={onBack}>
-            ← SAÚDE
-          </button>
+          <button className="hs-back tech-font" onClick={onBack}>← SAÚDE</button>
           <div className="hs-module-title-wrap">
             <span className="hs-module-icon">{mod.icon}</span>
             <div>
@@ -236,9 +187,7 @@ function ModuleShell({ mod, onBack, children }) {
           </div>
           <div className="hs-module-accent-bar" style={{ background: mod.color }} />
         </header>
-        <div className="hs-module-body">
-          {children}
-        </div>
+        <div className="hs-module-body">{children}</div>
       </div>
     </div>
   );

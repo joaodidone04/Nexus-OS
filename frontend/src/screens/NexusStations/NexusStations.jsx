@@ -140,12 +140,26 @@ const isImgAvatar = (v) =>
   typeof v === "string" && (v.startsWith("data:") || v.startsWith("http"));
 
 // ── Modal: editar perfil ───────────────────────────────────────────────────
-function EditProfileModal({ profile, onClose, onSave }) {
+function EditProfileModal({ profile, onClose }) {
   const { updateMyProfile, firebaseUser } = useAuth();
-  const [name,     setName]     = useState(profile?.displayName || profile?.name || "");
-  const [bio,      setBio]      = useState(profile?.bio || "");
-  const [error,    setError]    = useState("");
-  const [saving,   setSaving]   = useState(false);
+  const [name,   setName]   = useState(profile?.displayName || "");
+  const [bio,    setBio]    = useState(profile?.bio || "");
+  const [error,  setError]  = useState("");
+  const [saving, setSaving] = useState(false);
+
+  const RANK_META = {
+    recruit:    { title: "RECRUTA",      icon: "⬡", color: "#6b7280", border: "rgba(107,114,128,0.30)", bg: "rgba(107,114,128,0.08)" },
+    operative:  { title: "OPERATIVO",    icon: "◈", color: "#3b82f6", border: "rgba(59,130,246,0.35)",  bg: "rgba(59,130,246,0.08)"  },
+    specialist: { title: "ESPECIALISTA", icon: "⬟", color: "#8b5cf6", border: "rgba(139,92,246,0.35)", bg: "rgba(139,92,246,0.08)"  },
+    commander:  { title: "COMANDANTE",   icon: "✦", color: "#f59e0b", border: "rgba(245,158,11,0.35)", bg: "rgba(245,158,11,0.08)"  },
+    elite:      { title: "ELITE",        icon: "⬠", color: "#ef4444", border: "rgba(239,68,68,0.35)",  bg: "rgba(239,68,68,0.08)"   },
+    phantom:    { title: "FANTASMA",     icon: "◉", color: "#06b6d4", border: "rgba(6,182,212,0.35)",  bg: "rgba(6,182,212,0.08)"   },
+    legend:     { title: "LENDÁRIO",     icon: "★", color: "#fbbf24", border: "rgba(251,191,36,0.40)", bg: "rgba(251,191,36,0.08)"  },
+  };
+  const rank        = RANK_META[profile?.rankId] || RANK_META.recruit;
+  const totalXP     = profile?.totalXP     || 0;
+  const level       = profile?.level       || 1;
+  const loginStreak = profile?.loginStreak || 0;
 
   const handleSave = async () => {
     if (!name.trim()) return setError("CODINOME OBRIGATÓRIO");
@@ -168,52 +182,64 @@ function EditProfileModal({ profile, onClose, onSave }) {
           <button type="button" className="nx-modal-close" onClick={onClose}>✕</button>
         </div>
 
-        {/* Avatar do Firebase (foto do Google) */}
-        <div className="nx-avatar-edit-wrap">
-          <div className="nx-avatar-edit">
+        {/* Hero */}
+        <div className="nx-profile-hero">
+          <div className="nx-profile-avatar">
             {profile?.photoURL
               ? <img src={profile.photoURL} alt="avatar" />
-              : <span style={{ fontSize: 32 }}>👤</span>
+              : <span className="nx-profile-avatar-placeholder">
+                  {(profile?.displayName || firebaseUser?.email || "O")[0].toUpperCase()}
+                </span>
             }
           </div>
-          {profile?.photoURL && (
-            <p style={{ fontSize: 9, letterSpacing: ".14em", color: "rgba(255,255,255,0.22)", textAlign: "center", marginTop: 6 }}>
-              FOTO SINCRONIZADA COM O GOOGLE
-            </p>
-          )}
+          <div className="nx-profile-name tech-font">{profile?.displayName || "OPERADOR"}</div>
+          <div className="nx-profile-email data-font">{firebaseUser?.email || ""}</div>
+          <div className="nx-profile-stats">
+            <div className="nx-profile-stat">
+              <span className="nx-profile-stat-val tech-font">{level}</span>
+              <span className="nx-profile-stat-label">NÍVEL</span>
+            </div>
+            <div className="nx-profile-stat-divider" />
+            <div className="nx-profile-stat">
+              <span className="nx-profile-stat-val tech-font">{totalXP.toLocaleString()}</span>
+              <span className="nx-profile-stat-label">XP TOTAL</span>
+            </div>
+            <div className="nx-profile-stat-divider" />
+            <div className="nx-profile-stat">
+              <span className="nx-profile-stat-val tech-font">{loginStreak}</span>
+              <span className="nx-profile-stat-label">SEQUÊNCIA</span>
+            </div>
+          </div>
+          <div className="nx-profile-rank-pill" style={{ "--rk-border": rank.border, "--rk-bg": rank.bg, "--rk-color": rank.color }}>
+            <span className="nx-profile-rank-icon">{rank.icon}</span>
+            <span className="nx-profile-rank-name">{rank.title}</span>
+          </div>
         </div>
 
-        <div className="nx-modal-field">
-          <label className="nx-modal-label tech-font">CODINOME</label>
-          <input
-            className="nx-modal-input tech-font"
-            value={name}
-            onChange={(e) => { setName(e.target.value); setError(""); }}
-            placeholder="NOME DO OPERADOR"
-            autoFocus
-          />
-        </div>
-
-        <div className="nx-modal-field">
-          <label className="nx-modal-label tech-font">BIO <span style={{ color: "rgba(255,255,255,0.22)", fontWeight: 400 }}>(opcional)</span></label>
-          <textarea
-            className="nx-modal-input tech-font"
-            value={bio}
-            onChange={(e) => setBio(e.target.value)}
-            placeholder="BREVE DESCRIÇÃO DO OPERADOR..."
-            rows={3}
-            style={{ resize: "vertical", height: "auto", padding: "12px 14px" }}
-          />
+        {/* Campos */}
+        <div className="nx-modal-fields">
+          <div className="nx-modal-field">
+            <label className="nx-modal-label tech-font">CODINOME</label>
+            <input className="nx-modal-input tech-font" value={name}
+              onChange={(e) => { setName(e.target.value); setError(""); }}
+              placeholder="NOME DO OPERADOR" autoFocus />
+          </div>
+          <div className="nx-modal-field">
+            <label className="nx-modal-label tech-font">
+              BIO <span className="nx-modal-label-opt">(opcional)</span>
+            </label>
+            <textarea className="nx-modal-input tech-font" value={bio}
+              onChange={(e) => setBio(e.target.value)}
+              placeholder="BREVE DESCRIÇÃO DO OPERADOR..." />
+          </div>
         </div>
 
         {error && <div className="nx-modal-error tech-font">{error}</div>}
 
         <div className="nx-modal-actions">
-          <button type="button" className="nx-modal-btn nx-modal-btn--ghost tech-font" onClick={onClose}>
-            CANCELAR
-          </button>
+          <button type="button" className="nx-modal-btn nx-modal-btn--ghost tech-font" onClick={onClose}>CANCELAR</button>
           <button type="button" className="nx-modal-btn nx-modal-btn--primary tech-font" onClick={handleSave} disabled={saving}>
-            {saving ? "SALVANDO..." : "SALVAR"}
+            {saving ? "SALVANDO..." : "SALVAR PERFIL"}
           </button>
         </div>
       </div>
@@ -223,24 +249,25 @@ function EditProfileModal({ profile, onClose, onSave }) {
 
 // ── Modal: conquistas ─────────────────────────────────────────────────────
 function AchievementsModal({ onClose, profile }) {
-  const { BADGES } = require ? [] : [];
-
-  // Conquistas combinadas: badges do sistema + hardcoded legado
   const LEGACY = [
-    { id: "first_blood",   icon: "🚀", name: "PRIMEIRO ACESSO",     desc: "Conectou ao NΞXUS pela primeira vez." },
-    { id: "first_mission", icon: "💠", name: "PRIMEIRA MISSÃO",      desc: "Completou sua primeira missão." },
-    { id: "health_week",   icon: "🧬", name: "CORPO EM PROTOCOLO",   desc: "7 dias registrando saúde." },
-    { id: "streak_7",      icon: "🔥", name: "SEQUÊNCIA NEURAL",     desc: "7 dias consecutivos no sistema." },
-    { id: "streak_30",     icon: "💎", name: "PRESENÇA CONSTANTE",   desc: "30 dias consecutivos." },
-    { id: "mission_10",    icon: "⚡", name: "OPERATIVO ATIVO",      desc: "10 missões concluídas." },
-    { id: "mission_50",    icon: "🎖️", name: "VETERANO DE CAMPO",    desc: "50 missões no histórico." },
-    { id: "workout_10",    icon: "💪", name: "MÁQUINA DE GUERRA",    desc: "10 treinos registrados." },
-    { id: "goal_reached",  icon: "🎯", name: "META ATINGIDA",        desc: "Alcançou uma meta financeira." },
-    { id: "reach_elite",   icon: "⬠", name: "STATUS ELITE",         desc: "Atingiu o rank Elite." },
-    { id: "reach_legend",  icon: "★", name: "LENDÁRIO",             desc: "O topo da hierarquia NΞXUS." },
+    { id: "first_blood",      icon: "🚀", name: "PRIMEIRO ACESSO",    desc: "Conectou ao NΞXUS pela primeira vez."  },
+    { id: "profile_complete", icon: "🪪", name: "IDENTIDADE FORJADA", desc: "Completou o perfil de operador."       },
+    { id: "first_mission",    icon: "💠", name: "PRIMEIRA MISSÃO",     desc: "Completou sua primeira missão."        },
+    { id: "mission_10",       icon: "⚡", name: "OPERATIVO ATIVO",     desc: "10 missões concluídas."                },
+    { id: "mission_50",       icon: "🎖️", name: "VETERANO DE CAMPO",   desc: "50 missões no histórico."              },
+    { id: "health_week",      icon: "🧬", name: "CORPO EM PROTOCOLO",  desc: "7 dias registrando saúde."             },
+    { id: "workout_10",       icon: "💪", name: "MÁQUINA DE GUERRA",   desc: "10 treinos registrados."               },
+    { id: "first_finance",    icon: "💰", name: "CONTROLE INICIADO",   desc: "Primeira transação financeira."        },
+    { id: "goal_reached",     icon: "🎯", name: "META ATINGIDA",       desc: "Alcançou uma meta financeira."         },
+    { id: "streak_7",         icon: "🔥", name: "SEQUÊNCIA NEURAL",    desc: "7 dias consecutivos no sistema."       },
+    { id: "streak_30",        icon: "💎", name: "PRESENÇA CONSTANTE",  desc: "30 dias consecutivos."                 },
+    { id: "streak_100",       icon: "👻", name: "MODO FANTASMA",       desc: "100 dias sem falhar."                  },
+    { id: "reach_operative",  icon: "◈", name: "OPERATIVO",           desc: "Atingiu o rank Operativo."            },
+    { id: "reach_elite",      icon: "⬠", name: "STATUS ELITE",        desc: "Atingiu o rank Elite."                },
+    { id: "reach_legend",     icon: "★", name: "LENDÁRIO",            desc: "O topo da hierarquia NΞXUS."          },
   ];
-
-  const unlockedSet = new Set(profile?.badges || []);
+  const unlockedSet   = new Set(profile?.badges || []);
+  const unlockedCount = LEGACY.filter(a => unlockedSet.has(a.id)).length;
 
   return (
     <div className="nx-overlay" onClick={onClose}>
@@ -249,17 +276,21 @@ function AchievementsModal({ onClose, profile }) {
           <span className="nx-modal-title tech-font">CONQUISTAS</span>
           <button type="button" className="nx-modal-close" onClick={onClose}>✕</button>
         </div>
+        <div className="nx-ach-header">
+          <span className="nx-ach-header-label">DESBLOQUEADAS</span>
+          <span className="nx-ach-header-count tech-font">{unlockedCount} / {LEGACY.length}</span>
+        </div>
         <div className="nx-ach-list">
           {LEGACY.map((a) => {
             const unlocked = unlockedSet.has(a.id);
             return (
               <div key={a.id} className={`nx-ach-item${unlocked ? " is-unlocked" : ""}`}>
-                <span className="nx-ach-icon">{a.icon}</span>
+                <div className="nx-ach-icon-wrap">{a.icon}</div>
                 <div className="nx-ach-info">
                   <span className="nx-ach-name tech-font">{a.name}</span>
                   <span className="nx-ach-desc data-font">{a.desc}</span>
                 </div>
-                <span className="nx-ach-status">{unlocked ? "✓" : "🔒"}</span>
+                <div className="nx-ach-badge">{unlocked ? "✓" : "🔒"}</div>
               </div>
             );
           })}
@@ -268,6 +299,8 @@ function AchievementsModal({ onClose, profile }) {
     </div>
   );
 }
+
+
 
 // ── Relógio vertical NΞXUS ─────────────────────────────────────────
 function DigitColumn({ value, max }) {

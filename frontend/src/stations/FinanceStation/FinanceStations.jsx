@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
-import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
-import { useNexus } from "../../context/NexusContext";
+import { useAuth } from "../../context/AuthContext";              // ← trocado
+import { useXP } from "../../hooks/useXP";                       // ← XP via Firebase
 import "./FinanceStations.css";
 
 import { MODULES, XP_RULES, DEFAULT_CATEGORIES, useStorage } from "./modules/financeConstants.jsx";
@@ -14,7 +14,7 @@ import ExtratoModule      from "./modules/ExtratoModule.jsx";
 
 export default function FinanceStation() {
   const navigate = useNavigate();
-  const { addXp } = useNexus();
+  const { award } = useXP();                                     // ← hook de XP Firebase
 
   const [active,       setActive]       = useState("dashboard");
   const [transactions, setTransactions] = useStorage("nx-finance-transactions", []);
@@ -27,46 +27,74 @@ export default function FinanceStation() {
   const activeMod = MODULES.find(m => m.id === active);
 
   // ── XP engine ──────────────────────────────────────────────────────────
+  // Mantém a lógica local de toast visual + chama o Firebase via useXP
   const grantXp = useCallback((ruleKey) => {
     const rule = XP_RULES[ruleKey];
     if (!rule) return;
+
+    // Deduplica por mês para regras de saldo
     const now      = new Date();
     const monthKey = `${now.getFullYear()}-${now.getMonth()}`;
     const logKey   = `${ruleKey}:${monthKey}`;
     if ((ruleKey === "saldo_positivo" || ruleKey === "sem_deficit_3meses") && xpLog.includes(logKey)) return;
     if (ruleKey === "saldo_positivo" || ruleKey === "sem_deficit_3meses") setXpLog(prev => [...prev, logKey]);
-    if (addXp) addXp(rule.xp);
+
+    // Mapeia ruleKey para XP_ACTIONS do Firebase
+    const actionMap = {
+      nova_transacao:      "TRANSACTION_LOG",
+      meta_criada:         "MISSION_CREATED",      // reutiliza
+      meta_concluida:      "GOAL_REACHED",
+      conta_criada:        "TRANSACTION_LOG",
+      saldo_positivo:      "BUDGET_WEEK_OK",
+      sem_deficit_3meses:  "BUDGET_WEEK_OK",
+    };
+    const fbAction = actionMap[ruleKey];
+    if (fbAction) award(fbAction).catch(() => {});   // dispara sem bloquear
+
+    // Toast local (mantém UX rápida)
     const id = Date.now();
     setToasts(prev => [...prev, { id, xp: rule.xp, label: rule.label, icon: rule.icon }]);
     setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 3500);
-  }, [addXp, xpLog]);
+  }, [award, xpLog]);
 
-  // Saldo positivo check
+  // ── Saldo positivo check ────────────────────────────────────────────────
   useEffect(() => {
     const now = new Date();
-    const m = transactions.filter(t => { const d = new Date(t.date); return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear(); });
+    const m = transactions.filter(t => {
+      const d = new Date(t.date);
+      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    });
     const r = m.filter(t => t.type === "receitas").reduce((a, b) => a + b.amount, 0);
     const d = m.filter(t => t.type === "despesas").reduce((a, b) => a + b.amount, 0);
     if (r > 0 && r > d) grantXp("saldo_positivo");
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [transactions]);
 
-  // 3 meses sem déficit
+  // ── 3 meses sem déficit ─────────────────────────────────────────────────
   useEffect(() => {
     const now = new Date();
     const last3 = Array.from({ length: 3 }, (_, i) => {
       const m = now.getMonth() - 1 - i;
-      return { month: ((m % 12) + 12) % 12, year: now.getFullYear() + Math.floor((now.getMonth() - 1 - i) / 12) };
+      return {
+        month: ((m % 12) + 12) % 12,
+        year:  now.getFullYear() + Math.floor((now.getMonth() - 1 - i) / 12),
+      };
     });
     const allPositive = last3.every(({ month, year }) => {
-      const txs = transactions.filter(t => { const d = new Date(t.date); return d.getMonth() === month && d.getFullYear() === year; });
+      const txs = transactions.filter(t => {
+        const d = new Date(t.date);
+        return d.getMonth() === month && d.getFullYear() === year;
+      });
       const r = txs.filter(t => t.type === "receitas").reduce((a, b) => a + b.amount, 0);
       const d = txs.filter(t => t.type === "despesas").reduce((a, b) => a + b.amount, 0);
       return r > 0 && r >= d;
     });
     if (allPositive) grantXp("sem_deficit_3meses");
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [transactions]);
 
-  const content = (
+  // Renderiza direto — sem portal — para funcionar dentro do <Outlet />
+  return (
     <div className="fs-root">
       <XpToast toasts={toasts} />
 
@@ -78,12 +106,13 @@ export default function FinanceStation() {
         <div className="fs-side-label"><span>MÓDULOS</span></div>
         <div className="fs-side-nav">
           {MODULES.map(m => (
-            <button key={m.id}
+            <button
+              key={m.id}
               className={`fs-nav-item ${active === m.id ? "is-active" : ""}`}
               style={{ "--nav-color": m.color }}
-              onClick={() => setActive(m.id)}>
+              onClick={() => setActive(m.id)}
+            >
               <span className="fs-nav-icon" style={{ color: active === m.id ? m.color : undefined }}>
-                {/* inline svg — imported via financeConstants */}
                 {m.id === "dashboard"     && <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>}
                 {m.id === "receitas"      && <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="18 15 12 9 6 15"/></svg>}
                 {m.id === "despesas"      && <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="6 9 12 15 18 9"/></svg>}
@@ -98,7 +127,7 @@ export default function FinanceStation() {
         </div>
         <div className="fs-station-tag">
           <span>FINANCE</span>
-          <span className="fs-station-dot" style={{ color: activeMod.color }}>●</span>
+          <span className="fs-station-dot" style={{ color: activeMod?.color }}>●</span>
           <span>STATION</span>
         </div>
       </aside>
@@ -117,6 +146,4 @@ export default function FinanceStation() {
       </main>
     </div>
   );
-
-  return createPortal(content, document.body);
 }

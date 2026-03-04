@@ -9,9 +9,8 @@
 // ═══════════════════════════════════════════════════════════
 import { useCallback } from "react";
 import { useAuth } from "../context/AuthContext";
-import { addXP, XP_ACTIONS } from "../xp/xpEngine";   // ← engine local
-import * as userService from "../firebase/userService"; // ← serviço Firestore
-import { getRank, getLevel } from "../xp/xpEngine";
+import { XP_ACTIONS, getRank } from "../xp/xpEngine";
+import * as userService from "../firebase/userService";
 
 export function useXP() {
   const { firebaseUser, profile, showXPToast } = useAuth();

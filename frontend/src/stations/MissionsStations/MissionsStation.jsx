@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useNexus } from "../../context/NexusContext.jsx";
+import { useAuth } from "../../context/AuthContext.jsx";          // ← trocado
 import { readModulesLocal, writeModulesLocal } from "../../services/modulesStorage.js";
 import { taskOccursOnDate, getActiveDates, getDatesOfMonth } from "../../Utils/Recurrence.js";
 import TaskCard from "../../components/Taskcard/TaskCard.jsx";
@@ -64,9 +64,23 @@ function useStorage(key, init) {
 // COMPONENT
 // ══════════════════════════════════════════════════════════════════════════
 export default function MissionsStation() {
-  const { currentProfile, xp: totalXp } = useNexus();
-  const profileId = currentProfile?.id || "default";
+  // ── useAuth substitui useNexus ──────────────────────────────────────────
+  const { profile, firebaseUser } = useAuth();
 
+  // profileId: usa UID do Firebase (único e persistente)
+  const profileId = firebaseUser?.uid || "default";
+
+  // Dados do perfil vindos do Firestore
+  const operatorName = profile?.displayName || "OPERADOR";
+  const photoURL     = profile?.photoURL    || "";
+  const totalXp      = profile?.totalXP     || 0;
+  const isAvatarImg  = typeof photoURL === "string" && photoURL.startsWith("http");
+
+  // ── XP / Level (calculado localmente para o display da barra) ────────────
+  const { level, currentXp, neededXp } = useMemo(() => calcLevel(totalXp), [totalXp]);
+  const xpPct = Math.min((currentXp / neededXp) * 100, 100);
+
+  // ── Body class ───────────────────────────────────────────────────────────
   useEffect(() => {
     document.body.classList.add("is-missions-screen");
     return () => document.body.classList.remove("is-missions-screen");
@@ -104,16 +118,10 @@ export default function MissionsStation() {
   // ── UI state ─────────────────────────────────────────────────────────────
   const todayStr = useMemo(() => new Date().toISOString().split("T")[0], []);
   const [selectedDate, setSelectedDate] = useState(todayStr);
-  const [isNewOpen, setIsNewOpen] = useState(false);
-  const [openTask,  setOpenTask]  = useState(null);
-
-  // Mês visível no calendário (para calcular activeDates)
-  const [calYear,  setCalYear]  = useState(() => new Date().getFullYear());
-  const [calMonth, setCalMonth] = useState(() => new Date().getMonth());
-
-  // ── XP / Level ───────────────────────────────────────────────────────────
-  const { level, currentXp, neededXp } = useMemo(() => calcLevel(totalXp || 0), [totalXp]);
-  const xpPct = Math.min((currentXp / neededXp) * 100, 100);
+  const [isNewOpen, setIsNewOpen]       = useState(false);
+  const [openTask,  setOpenTask]        = useState(null);
+  const [calYear,   setCalYear]         = useState(() => new Date().getFullYear());
+  const [calMonth,  setCalMonth]        = useState(() => new Date().getMonth());
 
   // ── Tasks do módulo ativo ─────────────────────────────────────────────────
   const moduleTasks = useMemo(() =>
@@ -124,19 +132,16 @@ export default function MissionsStation() {
     [tasks, activeModuleId]
   );
 
-  // Tasks que ocorrem no dia selecionado via motor de recorrência
   const tasksForDay = useMemo(() =>
     moduleTasks.filter(t => taskOccursOnDate(t, selectedDate)),
     [moduleTasks, selectedDate]
   );
 
-  // Dias do mês visível com ao menos uma task → pontos no calendário
   const activeDates = useMemo(() => {
     const dates = getDatesOfMonth(calYear, calMonth);
     return getActiveDates(moduleTasks, dates);
   }, [moduleTasks, calYear, calMonth]);
 
-  // Board por status
   const tasksByStatus = useMemo(() => {
     const map = {
       [TaskStatus.TODO]:        [],
@@ -180,12 +185,6 @@ export default function MissionsStation() {
     setIsNewOpen(false);
   }, [activeModuleId, currentModuleMeta.color, selectedDate, setTasks]);
 
-  // ── Profile ───────────────────────────────────────────────────────────────
-  const operatorName = currentProfile?.name || "OPERADOR";
-  const avatar       = currentProfile?.avatar;
-  const isAvatarImg  = typeof avatar === "string" &&
-    (avatar.startsWith("data:") || avatar.startsWith("http"));
-
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div className="ms-root">
@@ -217,12 +216,14 @@ export default function MissionsStation() {
           ))}
         </div>
 
+        {/* Perfil — agora usa dados do Firebase */}
         <div className="ms-profile" style={{ "--profile-color": currentModuleMeta.color }}>
           <div className="ms-profile-left">
             <div className="ms-avatar">
               {isAvatarImg
-                ? <img src={avatar} alt="avatar" />
-                : <span>{typeof avatar === "string" ? avatar : "👤"}</span>}
+                ? <img src={photoURL} alt="avatar" />
+                : <span>👤</span>
+              }
             </div>
             <div className="ms-profile-meta">
               <div className="ms-profile-name">{operatorName}</div>

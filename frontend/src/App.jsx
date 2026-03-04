@@ -1,35 +1,30 @@
 // ═══════════════════════════════════════════════════════════
-//  NΞXUS — App.jsx  (com gate de onboarding)
+//  NΞXUS — App.jsx
 // ═══════════════════════════════════════════════════════════
 import { Navigate, Route, Routes } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
-import XPToast from "./xp/XPToast";
-import LoginScreen from "./auth/LoginScreen";
+import XPToast        from "./xp/XPToast";
+import LoginScreen    from "./auth/LoginScreen";
 import OnboardingScreen from "./auth/OnboardingScreen";
+import NexusStations  from "./screens/NexusStations/NexusStations";
 
-// Importe suas estações normalmente
-import NexusStations from "./screens/NexusStations/NexusStations"; // ajuste o path
+// ── Importa as estações ─────────────────────────────────────
+import MissionsStation from "./stations/MissionsStations/MissionsStation";
+import FinanceStation  from "./stations/FinanceStation/FinanceStations";
+import HealthStation   from "./stations/HealthStation/HealthStation";
 
 // ── Rota privada ────────────────────────────────────────────
 function PrivateRoute({ children }) {
   const { isAuthenticated, loading, profile } = useAuth();
 
-  // Aguardando firebase resolver
-  if (loading) return <NexusLoader />;
-
-  // Não autenticado → login
+  if (loading)          return <NexusLoader />;
   if (!isAuthenticated) return <Navigate to="/login" replace />;
-
-  // Autenticado mas ainda não fez onboarding → tela de cadastro
-  // onboardingDone é false na primeira vez (setado pelo userService)
-  if (profile && profile.onboardingDone === false) {
-    return <OnboardingScreen />;
-  }
+  if (profile && profile.onboardingDone === false) return <OnboardingScreen />;
 
   return children;
 }
 
-// ── Loader simples ──────────────────────────────────────────
+// ── Loader ──────────────────────────────────────────────────
 function NexusLoader() {
   return (
     <div style={{
@@ -54,25 +49,29 @@ export default function App() {
   return (
     <>
       <Routes>
-        {/* Login — acessível sem auth */}
+        {/* Público */}
         <Route path="/login" element={<LoginScreen />} />
 
-        {/* Stations — protegida + onboarding gate */}
+        {/* Privado — NexusStations é o layout wrapper (hub + outlet) */}
         <Route
-          path="/stations/*"
+          path="/stations"
           element={
             <PrivateRoute>
               <NexusStations />
             </PrivateRoute>
           }
-        />
+        >
+          {/* Sub-rotas renderizadas no <Outlet /> dentro do NexusStations */}
+          <Route path="missions" element={<MissionsStation />} />
+          <Route path="finance"  element={<FinanceStation />}  />
+          <Route path="health"   element={<HealthStation />}   />
+        </Route>
 
         {/* Redirects */}
         <Route path="/"  element={<Navigate to="/stations" replace />} />
         <Route path="*"  element={<Navigate to="/stations" replace />} />
       </Routes>
 
-      {/* Toast global de XP — aparece em qualquer tela autenticada */}
       <XPToast />
     </>
   );
