@@ -14,7 +14,12 @@ const RECURRENCE_TYPES = [
   { id: "none",    label: "ÚNICA"   },
   { id: "weekly",  label: "SEMANAL" },
   { id: "monthly", label: "MENSAL"  },
+  { id: "yearly",  label: "ANUAL"   },
 ];
+
+const DOW_PT  = ["domingo","segunda","terça","quarta","quinta","sexta","sábado"];
+const MON_PT  = ["janeiro","fevereiro","março","abril","maio","junho",
+                 "julho","agosto","setembro","outubro","novembro","dezembro"];
 
 const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, "0"));
 const MINS  = ["00","05","10","15","20","25","30","35","40","45","50","55"];
@@ -37,6 +42,19 @@ export default function NewTaskModal({ currentModule, onClose, onSave, selectedD
     if (selectedBorder === "default") return currentModule.color;
     return BORDER_COLORS.find(b => b.id === selectedBorder)?.color || currentModule.color;
   }, [selectedBorder, currentModule.color]);
+
+  // Descrição dinâmica baseada na data selecionada e tipo de recorrência
+  const recurrenceHint = useMemo(() => {
+    if (!selectedDate) return "Aparece somente neste dia";
+    const d = new Date(selectedDate + "T12:00:00");
+    switch (recurrenceType) {
+      case "none":    return "Aparece somente em " + d.toLocaleDateString("pt-BR");
+      case "weekly":  return `Toda ${DOW_PT[d.getDay()]} — a partir de ${d.toLocaleDateString("pt-BR")}`;
+      case "monthly": return `Todo dia ${d.getDate()} de cada mês`;
+      case "yearly":  return `Todo dia ${d.getDate()} de ${MON_PT[d.getMonth()]} de cada ano`;
+      default:        return "";
+    }
+  }, [recurrenceType, selectedDate]);
 
   const addObjective = () => {
     const text = objInput.trim();
@@ -66,9 +84,7 @@ export default function NewTaskModal({ currentModule, onClose, onSave, selectedD
 
   const footer = (
     <>
-      <button onClick={onClose} className="nx-modal-link tech-font" type="button">
-        CANCELAR
-      </button>
+      <button onClick={onClose} className="nx-modal-link tech-font" type="button">CANCELAR</button>
       <button
         onClick={handleSave}
         className="nx-modal-confirm tech-font"
@@ -85,7 +101,7 @@ export default function NewTaskModal({ currentModule, onClose, onSave, selectedD
     <ModalContainer title={`CRIAR MISSÃO: ${currentModule.name}`} onClose={onClose} footer={footer}>
       <div className="nx-form">
 
-        {/* Título */}
+        {/* ── Título ── */}
         <div className="nx-field">
           <label className="nx-label tech-font">OBJETIVO PRINCIPAL</label>
           <input
@@ -98,7 +114,7 @@ export default function NewTaskModal({ currentModule, onClose, onSave, selectedD
           />
         </div>
 
-        {/* Descrição */}
+        {/* ── Descrição ── */}
         <div className="nx-field">
           <label className="nx-label tech-font">DADOS ADICIONAIS</label>
           <textarea
@@ -109,9 +125,8 @@ export default function NewTaskModal({ currentModule, onClose, onSave, selectedD
           />
         </div>
 
-        {/* Prioridade + Horário + Recorrência */}
-        <div className="nx-grid-3">
-
+        {/* ── Prioridade + Horário ── */}
+        <div className="nx-grid-2">
           <div className="nx-field">
             <label className="nx-label tech-font">PRIORIDADE</label>
             <div className="nx-priority-grid">
@@ -126,9 +141,7 @@ export default function NewTaskModal({ currentModule, onClose, onSave, selectedD
                     backgroundColor: priority === p.id ? p.color + "33" : "transparent",
                     color:           priority === p.id ? "rgba(255,255,255,0.92)" : "rgba(255,255,255,0.45)",
                   }}
-                >
-                  {p.label}
-                </button>
+                >{p.label}</button>
               ))}
             </div>
           </div>
@@ -147,38 +160,42 @@ export default function NewTaskModal({ currentModule, onClose, onSave, selectedD
               </select>
             </div>
           </div>
-
-          <div className="nx-field">
-            <label className="nx-label tech-font">RECORRÊNCIA</label>
-            <div className="nx-recur-row">
-              {RECURRENCE_TYPES.map(t => (
-                <button
-                  key={t.id}
-                  type="button"
-                  onClick={() => setRecurrenceType(t.id)}
-                  className="nx-recur-chip tech-font"
-                  style={{
-                    borderColor:     recurrenceType === t.id ? currentModule.color : "rgba(255,255,255,0.06)",
-                    backgroundColor: recurrenceType === t.id ? currentModule.color + "28" : "transparent",
-                    color:           recurrenceType === t.id ? "rgba(255,255,255,0.92)" : "rgba(255,255,255,0.40)",
-                  }}
-                >
-                  {t.label}
-                </button>
-              ))}
-            </div>
-            {recurrenceType !== "none" && (
-              <div className="nx-recur-hint data-font">
-                {recurrenceType === "weekly"
-                  ? "Gera 8 semanas a partir da data selecionada"
-                  : "Gera 6 meses a partir da data selecionada"}
-              </div>
-            )}
-          </div>
-
         </div>
 
-        {/* Objetivos */}
+        {/* ── Recorrência ── */}
+        <div className="nx-field">
+          <label className="nx-label tech-font">RECORRÊNCIA</label>
+
+          <div className="nx-recur-tabs">
+            {RECURRENCE_TYPES.map(t => (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => setRecurrenceType(t.id)}
+                className={`nx-recur-tab tech-font${recurrenceType === t.id ? " is-active" : ""}`}
+                style={recurrenceType === t.id ? {
+                  borderColor:     currentModule.color,
+                  backgroundColor: currentModule.color + "25",
+                  color:           "#fff",
+                  boxShadow:       `0 0 12px ${currentModule.color}30`,
+                } : undefined}
+              >{t.label}</button>
+            ))}
+          </div>
+
+          {/* Hint dinâmico — mostra o que acontece com a missão */}
+          <div className="nx-recur-hint">
+            <span className="nx-recur-icon">
+              {recurrenceType === "none"    && "📌"}
+              {recurrenceType === "weekly"  && "🔁"}
+              {recurrenceType === "monthly" && "📆"}
+              {recurrenceType === "yearly"  && "🗓"}
+            </span>
+            <span className="nx-recur-text data-font">{recurrenceHint}</span>
+          </div>
+        </div>
+
+        {/* ── Objetivos ── */}
         <div className="nx-field">
           <label className="nx-label tech-font">OBJETIVOS</label>
           <div className="nx-obj-row">
@@ -193,7 +210,6 @@ export default function NewTaskModal({ currentModule, onClose, onSave, selectedD
               ADICIONAR
             </button>
           </div>
-
           {objectives.length > 0 && (
             <div className="nx-obj-list">
               {objectives.map(o => (
@@ -206,11 +222,12 @@ export default function NewTaskModal({ currentModule, onClose, onSave, selectedD
           )}
         </div>
 
-        {/* Cor / Ícone */}
+        {/* ── Cor / Ícone ── */}
         <div className="nx-grid-2">
           <div className="nx-field">
             <label className="nx-label tech-font">COR / BORDA</label>
             <div className="nx-border-grid">
+              {/* PADRÃO — só uma vez, com a cor do módulo */}
               <button
                 type="button"
                 className="nx-border-chip tech-font"
@@ -223,6 +240,7 @@ export default function NewTaskModal({ currentModule, onClose, onSave, selectedD
                 <span className="nx-swatch" style={{ backgroundColor: currentModule.color }} />
                 PADRÃO
               </button>
+              {/* Outras cores — filtra "default" caso exista na constante */}
               {BORDER_COLORS.filter(b => b.id !== "default").map(b => (
                 <button
                   key={b.id}
@@ -254,9 +272,7 @@ export default function NewTaskModal({ currentModule, onClose, onSave, selectedD
                     borderColor:     selectedIcon === icon ? currentModule.color : "transparent",
                     backgroundColor: selectedIcon === icon ? currentModule.color + "22" : "transparent",
                   }}
-                >
-                  {icon}
-                </button>
+                >{icon}</button>
               ))}
             </div>
           </div>

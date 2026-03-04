@@ -4,21 +4,16 @@
 
 .calendar-root {
   width: 100%;
-  /* FIX: max-width removido — na sidebar ele ficava menor que o container */
   padding: 14px;
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
   backdrop-filter: blur(24px);
-  box-shadow: 0 20px 50px -18px rgba(0, 0, 0, 0.65);
+  box-shadow: 0 20px 50px -18px rgba(0,0,0,0.65);
   user-select: none;
   box-sizing: border-box;
 }
-
-/* Variante popover mantém largura fixa */
-.calendar-root.is-popover {
-  width: 260px;
-}
+.calendar-root.is-popover { width: 260px; }
 
 .calendar-header {
   display: grid;
@@ -33,18 +28,17 @@
   text-align: center;
   font-size: 9px;
   letter-spacing: .28em;
-  color: rgba(255, 255, 255, 0.88);
+  color: rgba(255,255,255,0.88);
   font-family: inherit;
 }
 
-/* FIX: display:grid + place-items para alinhar ◀ ▶ no Firefox */
 .calendar-nav {
   width: 28px;
   height: 28px;
   border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  background: rgba(0, 0, 0, 0.18);
-  color: rgba(255, 255, 255, 0.35);
+  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(0,0,0,0.18);
+  color: rgba(255,255,255,0.35);
   cursor: pointer;
   font-size: 9px;
   font-family: inherit;
@@ -53,81 +47,101 @@
   transition: all .18s ease;
 }
 .calendar-nav:hover {
-  color: rgba(255, 255, 255, 0.85);
-  border-color: rgba(255, 255, 255, 0.14);
-  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255,255,255,0.85);
+  border-color: rgba(255,255,255,0.14);
+  background: rgba(255,255,255,0.05);
 }
 
 .calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 4px;
+  gap: 3px;
   text-align: center;
 }
 
 .calendar-dow {
   font-size: 8px;
-  color: rgba(255, 255, 255, 0.22);
+  color: rgba(255,255,255,0.22);
   font-weight: 800;
   font-family: inherit;
-  padding: 2px 0 4px 0;
+  padding: 2px 0 5px 0;
   text-align: center;
 }
 
-.calendar-empty { height: 26px; }
+.calendar-empty { height: 32px; }
 
-/* FIX: width:100% + font-family para consistência entre browsers */
+/* ── Day button ── */
 .calendar-day {
+  position: relative;
   width: 100%;
-  height: 26px;
+  height: 32px;
   border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid transparent;
   background: transparent;
-  color: rgba(255, 255, 255, 0.40);
+  color: rgba(255,255,255,0.38);
   cursor: pointer;
   font-size: 10px;
   font-family: inherit;
   display: grid;
   place-items: center;
-  transition:
-    transform .18s ease,
-    background .18s ease,
-    border-color .18s ease,
-    color .18s ease;
+  transition: background .15s ease, color .15s ease, transform .12s ease;
 }
 .calendar-day:hover {
-  transform: scale(1.10);
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.12);
-  color: rgba(255, 255, 255, 0.80);
+  background: rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.80);
+  transform: scale(1.08);
 }
-.calendar-day:active { transform: scale(0.96); }
+.calendar-day:active { transform: scale(0.94); }
 
+/* Hoje — borda sutil */
+.calendar-day.is-today {
+  border-color: rgba(255,255,255,0.15);
+  color: rgba(255,255,255,0.72);
+}
+
+/* Tem missão */
+.calendar-day.has-task {
+  color: rgba(255,255,255,0.65);
+}
+
+/* Selecionado — cor via inline style */
 .calendar-day.is-selected {
-  border-color: rgba(255, 255, 255, 0.10);
-  color: white;
+  color: #fff;
   font-weight: 900;
 }
 
-/* FIX: font-family herdado no botão hoje */
+/* Ponto de missão — abaixo do número */
+.calendar-dot {
+  position: absolute;
+  bottom: 3px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+/* Botão "hoje" (popover) */
 .calendar-today {
+  display: block;
   width: 100%;
   margin-top: 12px;
   padding: 10px;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  background: rgba(255, 255, 255, 0.02);
-  color: rgba(255, 255, 255, 0.40);
+  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.02);
+  color: rgba(255,255,255,0.38);
   font-size: 9px;
   letter-spacing: .28em;
   text-transform: uppercase;
   font-family: inherit;
   cursor: pointer;
-  transition: all .18s ease;
   box-sizing: border-box;
+  transition: all .18s ease;
 }
 .calendar-today:hover {
-  color: rgba(255, 255, 255, 0.85);
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.12);
+  color: rgba(255,255,255,0.85);
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.12);
 }

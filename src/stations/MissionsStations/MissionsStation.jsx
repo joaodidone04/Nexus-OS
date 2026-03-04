@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useNexus } from "../../context/NexusContext.jsx";
 import { readModulesLocal, writeModulesLocal } from "../../services/modulesStorage.js";
+import { taskOccursOnDate, getActiveDates, getDatesOfMonth } from "../../services/Recurrence.js";
 import TaskCard from "../../components/Taskcard/TaskCard.jsx";
 import Calendar from "../../components/Calendar/Calendar.jsx";
 import NewTaskModal from "../../components/NewTask/NewTaskModal.jsx";
@@ -22,109 +23,39 @@ const COLUMNS = [
   { id: TaskStatus.DONE,        title: "CONCLUÍDO"     },
 ];
 
-const PRIORITY_XP = {
-  normal:    10,
-  important: 20,
-  priority:  30,
-  urgent:    45,
-};
+const PRIORITY_XP = { normal: 10, important: 20, priority: 30, urgent: 45 };
 
 const MISSIONS_STATION_META = { id: "missions", name: "MISSÕES", color: "#a855f7" };
-
-const DEFAULT_TASKS = [];
-
 const DEFAULT_MODULE = { id: "CASA", name: "CASA", color: "#7c3aed" };
-
-// Número de semanas/meses a gerar para frente
-const RECURRENCE_WEEKS_AHEAD  = 8;
-const RECURRENCE_MONTHS_AHEAD = 6;
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 function formatDatePT(dateStr) {
   try {
     return new Date(dateStr + "T12:00:00").toLocaleDateString("pt-BR", {
-      day: "2-digit", month: "long", year: "numeric",
+      weekday: "long", day: "2-digit", month: "long", year: "numeric",
     });
   } catch { return ""; }
 }
 
 function safeUUID() {
-  try { return crypto?.randomUUID?.() || `t_${Date.now()}_${Math.random()}`; }
-  catch { return `t_${Date.now()}_${Math.random()}`; }
+  try { return crypto.randomUUID(); }
+  catch { return `t_${Date.now()}_${Math.random().toString(36).slice(2)}`; }
 }
 
-function xpForLevel(level) { return level * 50; }
-
+function xpForLevel(l) { return l * 50; }
 function calcLevel(totalXp) {
-  let level = 1;
-  let remaining = totalXp;
-  while (remaining >= xpForLevel(level)) {
-    remaining -= xpForLevel(level);
-    level++;
-  }
-  return { level, currentXp: remaining, neededXp: xpForLevel(level) };
+  let level = 1, rem = totalXp;
+  while (rem >= xpForLevel(level)) { rem -= xpForLevel(level); level++; }
+  return { level, currentXp: rem, neededXp: xpForLevel(level) };
 }
 
-// ── Recurrence generation ──────────────────────────────────────────────────
-// Dado um template de task, gera as cópias nas datas corretas.
-// Retorna array de tasks prontas (sem o template original — o próprio template
-// vira a primeira ocorrência).
-function generateRecurringTasks(template) {
-  const { recurrence, date: startDate } = template;
-  if (!recurrence || recurrence.type === "none") return [template];
-
-  const start = new Date(startDate + "T12:00:00");
-  const copies = [];
-
-  // Primeira ocorrência é o próprio template
-  copies.push({ ...template });
-
-  if (recurrence.type === "weekly") {
-    // Gera RECURRENCE_WEEKS_AHEAD semanas a partir da data original
-    for (let w = 1; w <= RECURRENCE_WEEKS_AHEAD; w++) {
-      const next = new Date(start);
-      next.setDate(start.getDate() + w * 7);
-      const dateStr = next.toISOString().split("T")[0];
-      copies.push({
-        ...template,
-        id:   safeUUID(),
-        date: dateStr,
-        status: TaskStatus.TODO,
-      });
-    }
-  } else if (recurrence.type === "monthly") {
-    // Gera RECURRENCE_MONTHS_AHEAD meses a partir da data original
-    for (let m = 1; m <= RECURRENCE_MONTHS_AHEAD; m++) {
-      const next = new Date(start);
-      next.setMonth(start.getMonth() + m);
-      // Garante que não pulou para o mês seguinte (ex: 31 jan → 28 fev)
-      if (next.getMonth() !== ((start.getMonth() + m) % 12)) {
-        next.setDate(0); // último dia do mês anterior
-      }
-      const dateStr = next.toISOString().split("T")[0];
-      copies.push({
-        ...template,
-        id:   safeUUID(),
-        date: dateStr,
-        status: TaskStatus.TODO,
-      });
-    }
-  }
-
-  return copies;
-}
-
-// ── useStorage ────────────────────────────────────────────────────────────
 function useStorage(key, init) {
   const [val, setVal] = useState(() => {
-    try {
-      const s = localStorage.getItem(key);
-      return s ? JSON.parse(s) : init;
-    } catch { return init; }
+    try { const s = localStorage.getItem(key); return s ? JSON.parse(s) : init; }
+    catch { return init; }
   });
   useEffect(() => {
-    try { localStorage.setItem(key, JSON.stringify(val)); }
-    catch {}
+    try { localStorage.setItem(key, JSON.stringify(val)); } catch {}
   }, [key, val]);
   return [val, setVal];
 }
@@ -143,59 +74,84 @@ export default function MissionsStation() {
 
   const navigate = useNavigate();
   const location = useLocation();
-
   const goHub = useCallback(() => {
-    const from = location.state?.from;
-    navigate(from || "/stations", { replace: true });
+    navigate(location.state?.from || "/stations", { replace: true });
   }, [navigate, location.state]);
 
   // ── Módulos ──────────────────────────────────────────────────────────────
   const [modules, setModules] = useState(() => readModulesLocal(profileId) ?? []);
-
-  const normalizedModules = useMemo(() => {
-    if (Array.isArray(modules) && modules.length > 0) return modules;
-    return [DEFAULT_MODULE];
-  }, [modules]);
-
+  const normalizedModules = useMemo(
+    () => (Array.isArray(modules) && modules.length > 0 ? modules : [DEFAULT_MODULE]),
+    [modules]
+  );
   const [activeModuleId, setActiveModuleId] = useState(
     () => readModulesLocal(profileId)?.[0]?.id || DEFAULT_MODULE.id
   );
-
   useEffect(() => {
-    if (!normalizedModules.some(m => m.id === activeModuleId)) {
+    if (!normalizedModules.some(m => m.id === activeModuleId))
       setActiveModuleId(normalizedModules[0]?.id || DEFAULT_MODULE.id);
-    }
   }, [normalizedModules, activeModuleId]);
-
   const currentModuleMeta = useMemo(
     () => normalizedModules.find(x => x.id === activeModuleId) || DEFAULT_MODULE,
     [normalizedModules, activeModuleId]
   );
-
   const [modulesOpen, setModulesOpen] = useState(false);
 
   // ── Tasks ────────────────────────────────────────────────────────────────
   const storageKey = `nexus_tasks_${profileId}`;
-  const [tasks, setTasks] = useStorage(storageKey, DEFAULT_TASKS);
+  const [tasks, setTasks] = useStorage(storageKey, []);
 
   // ── UI state ─────────────────────────────────────────────────────────────
-  const [selectedDate, setSelectedDate] = useState(
-    () => new Date().toISOString().split("T")[0]
-  );
+  const todayStr = useMemo(() => new Date().toISOString().split("T")[0], []);
+  const [selectedDate, setSelectedDate] = useState(todayStr);
   const [isNewOpen, setIsNewOpen] = useState(false);
   const [openTask,  setOpenTask]  = useState(null);
 
+  // Mês visível no calendário (para calcular activeDates)
+  const [calYear,  setCalYear]  = useState(() => new Date().getFullYear());
+  const [calMonth, setCalMonth] = useState(() => new Date().getMonth());
+
   // ── XP / Level ───────────────────────────────────────────────────────────
-  const { level, currentXp, neededXp } = useMemo(
-    () => calcLevel(totalXp || 0),
-    [totalXp]
-  );
+  const { level, currentXp, neededXp } = useMemo(() => calcLevel(totalXp || 0), [totalXp]);
   const xpPct = Math.min((currentXp / neededXp) * 100, 100);
 
-  // ── Task handlers ─────────────────────────────────────────────────────────
-  const moveTask = useCallback((id, newStatus) => {
-    setTasks(prev => prev.map(t => t.id === id ? { ...t, status: newStatus } : t));
-  }, [setTasks]);
+  // ── Tasks do módulo ativo ─────────────────────────────────────────────────
+  const moduleTasks = useMemo(() =>
+    (tasks || []).filter(t =>
+      t.moduleId === activeModuleId ||
+      (!t.moduleId && activeModuleId === DEFAULT_MODULE.id)
+    ),
+    [tasks, activeModuleId]
+  );
+
+  // Tasks que ocorrem no dia selecionado via motor de recorrência
+  const tasksForDay = useMemo(() =>
+    moduleTasks.filter(t => taskOccursOnDate(t, selectedDate)),
+    [moduleTasks, selectedDate]
+  );
+
+  // Dias do mês visível com ao menos uma task → pontos no calendário
+  const activeDates = useMemo(() => {
+    const dates = getDatesOfMonth(calYear, calMonth);
+    return getActiveDates(moduleTasks, dates);
+  }, [moduleTasks, calYear, calMonth]);
+
+  // Board por status
+  const tasksByStatus = useMemo(() => {
+    const map = {
+      [TaskStatus.TODO]:        [],
+      [TaskStatus.IN_PROGRESS]: [],
+      [TaskStatus.DONE]:        [],
+    };
+    tasksForDay.forEach(t => { if (map[t.status]) map[t.status].push(t); });
+    return map;
+  }, [tasksForDay]);
+
+  // ── Handlers ─────────────────────────────────────────────────────────────
+  const moveTask = useCallback((id, newStatus) =>
+    setTasks(prev => prev.map(t => t.id === id ? { ...t, status: newStatus } : t)),
+    [setTasks]
+  );
 
   const deleteTask = useCallback((id) => {
     setTasks(prev => prev.filter(t => t.id !== id));
@@ -204,7 +160,7 @@ export default function MissionsStation() {
 
   const handleSaveNewTask = useCallback((data) => {
     const priority = data.priority || "normal";
-    const template = {
+    setTasks(prev => [{
       id:          safeUUID(),
       title:       data.title,
       description: data.description || "",
@@ -212,42 +168,17 @@ export default function MissionsStation() {
       priority,
       xp:          PRIORITY_XP[priority] ?? 10,
       icon:        data.icon || "💠",
-      time:        data.time || undefined,
+      time:        data.time ?? undefined,
       borderColor: data.borderColor || currentModuleMeta.color,
-      objectives:  Array.isArray(data.objectives) ? data.objectives : [],
+      objectives:  data.objectives || [],
       subtasks:    [],
       comments:    [],
       date:        data.date || selectedDate,
       recurrence:  data.recurrence || { type: "none" },
       moduleId:    activeModuleId,
-    };
-
-    // Gera cópias se for recorrente
-    const toInsert = generateRecurringTasks(template);
-    setTasks(prev => [...toInsert, ...prev]);
+    }, ...prev]);
     setIsNewOpen(false);
   }, [activeModuleId, currentModuleMeta.color, selectedDate, setTasks]);
-
-  // ── Filtered tasks — mostra apenas as do dia selecionado + módulo ativo ──
-  const tasksForModule = useMemo(() => {
-    return (tasks || []).filter(t =>
-      (t.moduleId === activeModuleId ||
-       (!t.moduleId && activeModuleId === DEFAULT_MODULE.id)) &&
-      t.date === selectedDate
-    );
-  }, [tasks, activeModuleId, selectedDate]);
-
-  const tasksByStatus = useMemo(() => {
-    const map = {
-      [TaskStatus.TODO]:        [],
-      [TaskStatus.IN_PROGRESS]: [],
-      [TaskStatus.DONE]:        [],
-    };
-    tasksForModule.forEach(t => {
-      if (map[t.status]) map[t.status].push(t);
-    });
-    return map;
-  }, [tasksForModule]);
 
   // ── Profile ───────────────────────────────────────────────────────────────
   const operatorName = currentProfile?.name || "OPERADOR";
@@ -267,12 +198,7 @@ export default function MissionsStation() {
 
         <div className="ms-side-label tech-font">
           <span>MÓDULOS</span>
-          <button
-            type="button"
-            className="ms-gear"
-            title="Editar módulos"
-            onClick={() => setModulesOpen(true)}
-          >⚙</button>
+          <button type="button" className="ms-gear" onClick={() => setModulesOpen(true)}>⚙</button>
         </div>
 
         <div className="ms-side-stations">
@@ -281,25 +207,22 @@ export default function MissionsStation() {
               key={m.id}
               type="button"
               className={`ms-side-station tech-font${activeModuleId === m.id ? " is-active" : ""}`}
-              style={activeModuleId === m.id
-                ? { borderColor: m.color, color: m.color, background: `color-mix(in srgb, ${m.color} 12%, transparent)` }
-                : undefined
-              }
+              style={activeModuleId === m.id ? {
+                borderColor: m.color,
+                color: m.color,
+                background: `color-mix(in srgb, ${m.color} 12%, transparent)`,
+              } : undefined}
               onClick={() => setActiveModuleId(m.id)}
-            >
-              {m.name}
-            </button>
+            >{m.name}</button>
           ))}
         </div>
 
-        {/* Profile card */}
         <div className="ms-profile" style={{ "--profile-color": currentModuleMeta.color }}>
           <div className="ms-profile-left">
             <div className="ms-avatar">
               {isAvatarImg
                 ? <img src={avatar} alt="avatar" />
-                : <span>{typeof avatar === "string" ? avatar : "👤"}</span>
-              }
+                : <span>{typeof avatar === "string" ? avatar : "👤"}</span>}
             </div>
             <div className="ms-profile-meta">
               <div className="ms-profile-name">{operatorName}</div>
@@ -319,6 +242,8 @@ export default function MissionsStation() {
             selectedDate={selectedDate}
             onDateChange={setSelectedDate}
             accentColor={currentModuleMeta.color}
+            activeDates={activeDates}
+            onViewChange={(y, mo) => { setCalYear(y); setCalMonth(mo); }}
           />
         </div>
 
@@ -338,8 +263,7 @@ export default function MissionsStation() {
             <div className="ms-header-meta">
               <div className="ms-date data-font">{formatDatePT(selectedDate)}</div>
               <div className="ms-header-module tech-font">
-                MÓDULO:{" "}
-                <span style={{ color: currentModuleMeta.color }}>{currentModuleMeta.name}</span>
+                MÓDULO: <span style={{ color: currentModuleMeta.color }}>{currentModuleMeta.name}</span>
               </div>
             </div>
           </div>
@@ -402,9 +326,8 @@ export default function MissionsStation() {
             const safe = Array.isArray(nextModules) ? nextModules : [];
             setModules(safe);
             writeModulesLocal(profileId, safe);
-            if (!safe.some(m => m.id === activeModuleId)) {
+            if (!safe.some(m => m.id === activeModuleId))
               setActiveModuleId(safe[0]?.id || DEFAULT_MODULE.id);
-            }
             setModulesOpen(false);
           }}
         />
