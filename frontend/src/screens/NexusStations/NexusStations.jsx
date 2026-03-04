@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { useNexus } from "../../context/NexusContext";
+import { useAuth } from "../../context/AuthContext";
 import "./NexusStations.css";
 
 // ── Stations ───────────────────────────────────────────────────────────────
@@ -121,16 +121,13 @@ function StationCard({ station, onClick }) {
     >
       <div className="hub-card-spotlight" />
       <div className="hub-card-glow" />
-
       <div className="hub-card-header">
         <h3 className="hub-card-title tech-font">{station.name}</h3>
         <div className="hub-card-status data-font">ONLINE</div>
       </div>
-
       <div className="hub-card-icon-wrap">
         <div className="hub-icon">{station.icon}</div>
       </div>
-
       <div className="hub-card-footer">
         <p className="hub-card-desc data-font">{station.description}</p>
         <span className="hub-card-cta tech-font">ACESSAR TERMINAL ⇢</span>
@@ -144,32 +141,23 @@ const isImgAvatar = (v) =>
 
 // ── Modal: editar perfil ───────────────────────────────────────────────────
 function EditProfileModal({ profile, onClose, onSave }) {
-  const [name, setName] = useState(profile.name || "");
-  const [pass, setPass] = useState("");
-  const [passConf, setPassConf] = useState("");
-  const [avatar, setAvatar] = useState(profile.avatar || "👤");
-  const [showPass, setShowPass] = useState(false);
-  const [error, setError] = useState("");
-  const fileRef = useRef(null);
+  const { updateMyProfile, firebaseUser } = useAuth();
+  const [name,     setName]     = useState(profile?.displayName || profile?.name || "");
+  const [bio,      setBio]      = useState(profile?.bio || "");
+  const [error,    setError]    = useState("");
+  const [saving,   setSaving]   = useState(false);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!name.trim()) return setError("CODINOME OBRIGATÓRIO");
-    if (pass && pass !== passConf) return setError("CHAVES NÃO COINCIDEM");
-
-    onSave({
-      ...profile,
-      name: name.trim(),
-      avatar,
-      ...(pass ? { password: pass } : {}),
-    });
-  };
-
-  const handleFile = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onloadend = () => setAvatar(reader.result);
-    reader.readAsDataURL(file);
+    setSaving(true);
+    try {
+      await updateMyProfile({ displayName: name.trim(), bio: bio.trim() });
+      onClose();
+    } catch {
+      setError("ERRO AO SALVAR. TENTE NOVAMENTE.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -177,31 +165,22 @@ function EditProfileModal({ profile, onClose, onSave }) {
       <div className="nx-modal" onClick={(e) => e.stopPropagation()}>
         <div className="nx-modal-header">
           <span className="nx-modal-title tech-font">EDITAR OPERADOR</span>
-          <button type="button" className="nx-modal-close" onClick={onClose}>
-            ✕
-          </button>
+          <button type="button" className="nx-modal-close" onClick={onClose}>✕</button>
         </div>
 
-        {/* Avatar */}
+        {/* Avatar do Firebase (foto do Google) */}
         <div className="nx-avatar-edit-wrap">
-          <div
-            className="nx-avatar-edit"
-            onClick={() => fileRef.current?.click()}
-          >
-            {isImgAvatar(avatar) ? (
-              <img src={avatar} alt="avatar" />
-            ) : (
-              <span>{avatar}</span>
-            )}
-            <div className="nx-avatar-edit-overlay tech-font">TROCAR</div>
+          <div className="nx-avatar-edit">
+            {profile?.photoURL
+              ? <img src={profile.photoURL} alt="avatar" />
+              : <span style={{ fontSize: 32 }}>👤</span>
+            }
           </div>
-          <input
-            type="file"
-            ref={fileRef}
-            accept="image/*"
-            className="nx-hidden"
-            onChange={handleFile}
-          />
+          {profile?.photoURL && (
+            <p style={{ fontSize: 9, letterSpacing: ".14em", color: "rgba(255,255,255,0.22)", textAlign: "center", marginTop: 6 }}>
+              FOTO SINCRONIZADA COM O GOOGLE
+            </p>
+          )}
         </div>
 
         <div className="nx-modal-field">
@@ -209,80 +188,32 @@ function EditProfileModal({ profile, onClose, onSave }) {
           <input
             className="nx-modal-input tech-font"
             value={name}
-            onChange={(e) => {
-              setName(e.target.value);
-              setError("");
-            }}
+            onChange={(e) => { setName(e.target.value); setError(""); }}
             placeholder="NOME DO OPERADOR"
             autoFocus
           />
         </div>
 
         <div className="nx-modal-field">
-          <label className="nx-modal-label tech-font">
-            NOVA CHAVE{" "}
-            <span
-              style={{ color: "rgba(255,255,255,0.22)", fontWeight: 400 }}
-            >
-              (opcional)
-            </span>
-          </label>
-
-          <div className="nx-modal-input-row">
-            <input
-              className="nx-modal-input tech-font"
-              type={showPass ? "text" : "password"}
-              value={pass}
-              onChange={(e) => {
-                setPass(e.target.value);
-                setError("");
-              }}
-              placeholder="DEIXE EM BRANCO PARA MANTER"
-            />
-            <button
-              type="button"
-              className="nx-modal-eye"
-              onClick={() => setShowPass((s) => !s)}
-            >
-              {showPass ? "○" : "●"}
-            </button>
-          </div>
+          <label className="nx-modal-label tech-font">BIO <span style={{ color: "rgba(255,255,255,0.22)", fontWeight: 400 }}>(opcional)</span></label>
+          <textarea
+            className="nx-modal-input tech-font"
+            value={bio}
+            onChange={(e) => setBio(e.target.value)}
+            placeholder="BREVE DESCRIÇÃO DO OPERADOR..."
+            rows={3}
+            style={{ resize: "vertical", height: "auto", padding: "12px 14px" }}
+          />
         </div>
-
-        {pass && (
-          <div className="nx-modal-field">
-            <label className="nx-modal-label tech-font">
-              CONFIRMAR NOVA CHAVE
-            </label>
-            <input
-              className="nx-modal-input tech-font"
-              type="password"
-              value={passConf}
-              onChange={(e) => {
-                setPassConf(e.target.value);
-                setError("");
-              }}
-              placeholder="REPITA A CHAVE"
-            />
-          </div>
-        )}
 
         {error && <div className="nx-modal-error tech-font">{error}</div>}
 
         <div className="nx-modal-actions">
-          <button
-            type="button"
-            className="nx-modal-btn nx-modal-btn--ghost tech-font"
-            onClick={onClose}
-          >
+          <button type="button" className="nx-modal-btn nx-modal-btn--ghost tech-font" onClick={onClose}>
             CANCELAR
           </button>
-          <button
-            type="button"
-            className="nx-modal-btn nx-modal-btn--primary tech-font"
-            onClick={handleSave}
-          >
-            SALVAR
+          <button type="button" className="nx-modal-btn nx-modal-btn--primary tech-font" onClick={handleSave} disabled={saving}>
+            {saving ? "SALVANDO..." : "SALVAR"}
           </button>
         </div>
       </div>
@@ -291,100 +222,68 @@ function EditProfileModal({ profile, onClose, onSave }) {
 }
 
 // ── Modal: conquistas ─────────────────────────────────────────────────────
-const ACHIEVEMENTS = [
-  {
-    id: 1,
-    icon: "🎯",
-    name: "PRIMEIRO ACESSO",
-    desc: "Entrou no sistema pela primeira vez.",
-    unlocked: true,
-  },
-  {
-    id: 2,
-    icon: "⚡",
-    name: "VELOCIDADE NEURAL",
-    desc: "Completou 5 missões em um único dia.",
-    unlocked: false,
-  },
-  {
-    id: 3,
-    icon: "🔥",
-    name: "SEQUÊNCIA DE FOGO",
-    desc: "7 dias consecutivos de atividade.",
-    unlocked: false,
-  },
-  {
-    id: 4,
-    icon: "💎",
-    name: "OPERADOR ELITE",
-    desc: "Atingiu o nível 10.",
-    unlocked: false,
-  },
-  {
-    id: 5,
-    icon: "🌐",
-    name: "MULTIESTAÇÃO",
-    desc: "Acessou todas as estações do sistema.",
-    unlocked: false,
-  },
-  {
-    id: 6,
-    icon: "💰",
-    name: "PATRIMÔNIO DIGITAL",
-    desc: "Registrou 10 transações financeiras.",
-    unlocked: false,
-  },
-];
+function AchievementsModal({ onClose, profile }) {
+  const { BADGES } = require ? [] : [];
 
-function AchievementsModal({ onClose }) {
+  // Conquistas combinadas: badges do sistema + hardcoded legado
+  const LEGACY = [
+    { id: "first_blood",   icon: "🚀", name: "PRIMEIRO ACESSO",     desc: "Conectou ao NΞXUS pela primeira vez." },
+    { id: "first_mission", icon: "💠", name: "PRIMEIRA MISSÃO",      desc: "Completou sua primeira missão." },
+    { id: "health_week",   icon: "🧬", name: "CORPO EM PROTOCOLO",   desc: "7 dias registrando saúde." },
+    { id: "streak_7",      icon: "🔥", name: "SEQUÊNCIA NEURAL",     desc: "7 dias consecutivos no sistema." },
+    { id: "streak_30",     icon: "💎", name: "PRESENÇA CONSTANTE",   desc: "30 dias consecutivos." },
+    { id: "mission_10",    icon: "⚡", name: "OPERATIVO ATIVO",      desc: "10 missões concluídas." },
+    { id: "mission_50",    icon: "🎖️", name: "VETERANO DE CAMPO",    desc: "50 missões no histórico." },
+    { id: "workout_10",    icon: "💪", name: "MÁQUINA DE GUERRA",    desc: "10 treinos registrados." },
+    { id: "goal_reached",  icon: "🎯", name: "META ATINGIDA",        desc: "Alcançou uma meta financeira." },
+    { id: "reach_elite",   icon: "⬠", name: "STATUS ELITE",         desc: "Atingiu o rank Elite." },
+    { id: "reach_legend",  icon: "★", name: "LENDÁRIO",             desc: "O topo da hierarquia NΞXUS." },
+  ];
+
+  const unlockedSet = new Set(profile?.badges || []);
+
   return (
     <div className="nx-overlay" onClick={onClose}>
       <div className="nx-modal" onClick={(e) => e.stopPropagation()}>
         <div className="nx-modal-header">
           <span className="nx-modal-title tech-font">CONQUISTAS</span>
-          <button type="button" className="nx-modal-close" onClick={onClose}>
-            ✕
-          </button>
+          <button type="button" className="nx-modal-close" onClick={onClose}>✕</button>
         </div>
         <div className="nx-ach-list">
-          {ACHIEVEMENTS.map((a) => (
-            <div
-              key={a.id}
-              className={`nx-ach-item${a.unlocked ? " is-unlocked" : ""}`}
-            >
-              <span className="nx-ach-icon">{a.icon}</span>
-              <div className="nx-ach-info">
-                <span className="nx-ach-name tech-font">{a.name}</span>
-                <span className="nx-ach-desc data-font">{a.desc}</span>
+          {LEGACY.map((a) => {
+            const unlocked = unlockedSet.has(a.id);
+            return (
+              <div key={a.id} className={`nx-ach-item${unlocked ? " is-unlocked" : ""}`}>
+                <span className="nx-ach-icon">{a.icon}</span>
+                <div className="nx-ach-info">
+                  <span className="nx-ach-name tech-font">{a.name}</span>
+                  <span className="nx-ach-desc data-font">{a.desc}</span>
+                </div>
+                <span className="nx-ach-status">{unlocked ? "✓" : "🔒"}</span>
               </div>
-              <span className="nx-ach-status">{a.unlocked ? "✓" : "🔒"}</span>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>
   );
 }
 
-// ── Relógio vertical NΞXUS (ÚNICO) ─────────────────────────────────────────
-// Cada coluna de dígitos faz scroll para mostrar o valor atual.
-// Visível: atual (100%), ±1 (28%), ±2 (8%). Além disso: 0%.
+// ── Relógio vertical NΞXUS ─────────────────────────────────────────
 function DigitColumn({ value, max }) {
   const digits = Array.from({ length: max }, (_, i) => i);
   const ITEM_H = 36;
 
   return (
-    <div className="nclock-col" style={{ "--cell": `${ITEM_H}px` }}>
+    <div className="nclock-col">
       <div
         className="nclock-track"
-        style={{ transform: `translateY(calc(-${value} * ${ITEM_H}px))` }}
+        style={{ transform: `translateY(${-value * ITEM_H}px)` }}
       >
         {digits.map((d) => {
-          const dist = Math.abs(d - value);
-          const opacity =
-            dist === 0 ? 1 : dist === 1 ? 0.28 : dist === 2 ? 0.08 : 0;
-          const scale = dist === 0 ? 1 : dist === 1 ? 0.85 : 0.72;
-
+          const dist    = Math.abs(d - value);
+          const opacity = dist === 0 ? 1 : dist === 1 ? 0.28 : dist === 2 ? 0.08 : 0;
+          const scale   = dist === 0 ? 1 : dist === 1 ? 0.85 : 0.72;
           return (
             <div
               key={d}
@@ -412,55 +311,45 @@ function NexusClock({ accentColor = "#3b82f6" }) {
   const m = time.getMinutes();
   const s = time.getSeconds();
 
-  const h0 = Math.floor(h / 10);
-  const h1 = h % 10;
-  const m0 = Math.floor(m / 10);
-  const m1 = m % 10;
-  const s0 = Math.floor(s / 10);
-  const s1 = s % 10;
-
   return (
     <div className="nclock-root" style={{ "--accent": accentColor }}>
-      <DigitColumn value={h0} max={3} />
-      <DigitColumn value={h1} max={10} />
+      <DigitColumn value={Math.floor(h / 10)} max={3}  />
+      <DigitColumn value={h % 10}             max={10} />
       <div className="nclock-sep data-font">:</div>
-      <DigitColumn value={m0} max={6} />
-      <DigitColumn value={m1} max={10} />
+      <DigitColumn value={Math.floor(m / 10)} max={6}  />
+      <DigitColumn value={m % 10}             max={10} />
       <div className="nclock-sep data-font">:</div>
-      <DigitColumn value={s0} max={6} />
-      <DigitColumn value={s1} max={10} />
+      <DigitColumn value={Math.floor(s / 10)} max={6}  />
+      <DigitColumn value={s % 10}             max={10} />
     </div>
   );
 }
 
+// ══════════════════════════════════════════════════════════════════════
+//  NEXUS STATIONS — componente principal
+//  REGRA: TODOS os hooks ANTES de qualquer return condicional
+// ══════════════════════════════════════════════════════════════════════
 export default function NexusStations() {
   const navigate = useNavigate();
   const location = useLocation();
-  const {
-    currentProfile,
-    setCurrentProfile,
-    currentStation,
-    setCurrentStation,
-  } = useNexus();
 
-  if (!currentProfile) return <Navigate to="/login" replace />;
+  // ── Todos os hooks aqui em cima ───────────────────────────────────
+  const { profile, logout, loading, isAuthenticated } = useAuth();
 
-  const isHub = location.pathname === "/stations";
-
-  useEffect(() => {
-    const parts = location.pathname.split("/").filter(Boolean);
-    const sid = parts[1];
-    if (!sid) return;
-    if (sid !== currentStation) setCurrentStation(sid);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location.pathname]);
-
-  // ── Menu dropdown state ───────────────────────────────────────────────
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [editOpen, setEditOpen] = useState(false);
-  const [achieveOpen, setAchieveOpen] = useState(false);
+  const [currentStation, setCurrentStation] = useState("");
+  const [menuOpen,       setMenuOpen]       = useState(false);
+  const [editOpen,       setEditOpen]       = useState(false);
+  const [achieveOpen,    setAchieveOpen]    = useState(false);
   const menuRef = useRef(null);
 
+  // Sincroniza currentStation com a URL
+  useEffect(() => {
+    const parts = location.pathname.split("/").filter(Boolean);
+    const sid = parts[1] || "";
+    setCurrentStation(sid);
+  }, [location.pathname]);
+
+  // Fecha dropdown ao clicar fora
   useEffect(() => {
     if (!menuOpen) return;
     const onDown = (e) => {
@@ -472,12 +361,37 @@ export default function NexusStations() {
     return () => document.removeEventListener("mousedown", onDown);
   }, [menuOpen]);
 
-  const handleAction = (id) => {
+  // ── Returns condicionais DEPOIS de todos os hooks ─────────────────
+  if (loading) {
+    return (
+      <div style={{
+        position: "fixed", inset: 0, background: "#05050a",
+        display: "grid", placeItems: "center",
+        fontFamily: "'Chakra Petch', sans-serif",
+        fontSize: "11px", letterSpacing: ".32em",
+        color: "rgba(255,255,255,0.28)",
+      }}>
+        INICIALIZANDO NΞXUS...
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (!profile)         return null; // aguarda o listener do Firestore
+
+  // ── Dados do perfil ───────────────────────────────────────────────
+  const isHub        = location.pathname === "/stations";
+  const displayName  = profile.displayName || "OPERADOR";
+  const photoURL     = profile.photoURL    || "";
+  const level        = profile.level       || 1;
+  const accentColor  = profile.settings?.color || "#3b82f6";
+
+  // ── Handlers ─────────────────────────────────────────────────────
+  const handleAction = async (id) => {
     setMenuOpen(false);
     switch (id) {
       case "logout":
-        setCurrentStation("");
-        setCurrentProfile(null);
+        try { await logout(); } catch {}
         navigate("/login", { replace: true });
         break;
       case "profile":
@@ -486,27 +400,9 @@ export default function NexusStations() {
       case "achievements":
         setAchieveOpen(true);
         break;
-      case "settings":
-        // futuro
-        break;
       default:
         break;
     }
-  };
-
-  const handleSaveProfile = (updated) => {
-    setCurrentProfile(updated);
-    try {
-      const raw = localStorage.getItem("nexus_profiles");
-      if (raw) {
-        const list = JSON.parse(raw);
-        localStorage.setItem(
-          "nexus_profiles",
-          JSON.stringify(list.map((p) => (p.id === updated.id ? updated : p)))
-        );
-      }
-    } catch {}
-    setEditOpen(false);
   };
 
   const enterStation = (s) => {
@@ -514,6 +410,7 @@ export default function NexusStations() {
     navigate(s.path);
   };
 
+  // ── Render ────────────────────────────────────────────────────────
   return (
     <div className="ns-root">
       <div className="ns-bg" />
@@ -527,7 +424,6 @@ export default function NexusStations() {
           <div className="hub-shell">
             {/* Topbar */}
             <div className="hub-topbar">
-              {/* Menu dropdown */}
               <div className="hub-menu-wrap" ref={menuRef}>
                 <button
                   type="button"
@@ -537,36 +433,20 @@ export default function NexusStations() {
                   aria-expanded={menuOpen}
                 >
                   <div className="hub-avatar">
-                    {isImgAvatar(currentProfile.avatar) ? (
-                      <img src={currentProfile.avatar} alt="avatar" />
-                    ) : (
-                      <span>
-                        {typeof currentProfile.avatar === "string"
-                          ? currentProfile.avatar
-                          : "👤"}
-                      </span>
-                    )}
+                    {isImgAvatar(photoURL)
+                      ? <img src={photoURL} alt="avatar" />
+                      : <span>👤</span>
+                    }
                   </div>
-
                   <div className="hub-trigger-info">
-                    <span className="hub-trigger-name tech-font">
-                      {currentProfile.name}
-                    </span>
-                    <span className="hub-trigger-level data-font">
-                      LV {currentProfile.level ?? 1}
-                    </span>
+                    <span className="hub-trigger-name tech-font">{displayName}</span>
+                    <span className="hub-trigger-level data-font">LV {level}</span>
                   </div>
-
                   <svg
                     className="hub-menu-chevron"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    width="12"
-                    height="12"
+                    viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+                    width="12" height="12"
                   >
                     <polyline points="6 9 12 15 18 9" />
                   </svg>
@@ -576,10 +456,7 @@ export default function NexusStations() {
                   <div className="hub-dropdown">
                     {MENU_ITEMS.map((item, i) =>
                       item.id === "divider" ? (
-                        <div
-                          key={`div-${i}`}
-                          className="hub-dropdown-divider"
-                        />
+                        <div key={`div-${i}`} className="hub-dropdown-divider" />
                       ) : (
                         <button
                           key={item.id}
@@ -588,10 +465,7 @@ export default function NexusStations() {
                           style={{ "--color": item.color }}
                           onClick={() => handleAction(item.id)}
                         >
-                          <span
-                            className="hub-dropdown-icon"
-                            style={{ color: item.color }}
-                          >
+                          <span className="hub-dropdown-icon" style={{ color: item.color }}>
                             {item.icon}
                           </span>
                           {item.label}
@@ -602,9 +476,8 @@ export default function NexusStations() {
                 )}
               </div>
 
-              {/* Relógio */}
               <div className="hub-topbar-clock">
-                <NexusClock accentColor={currentProfile?.color || "#3b82f6"} />
+                <NexusClock accentColor={accentColor} />
               </div>
             </div>
 
@@ -619,14 +492,10 @@ export default function NexusStations() {
               </p>
             </div>
 
-            {/* Cards */}
+            {/* Grid de estações */}
             <div className="hub-grid">
               {STATIONS.map((s) => (
-                <StationCard
-                  key={s.id}
-                  station={s}
-                  onClick={() => enterStation(s)}
-                />
+                <StationCard key={s.id} station={s} onClick={() => enterStation(s)} />
               ))}
             </div>
 
@@ -637,22 +506,26 @@ export default function NexusStations() {
         </div>
       )}
 
+      {/* ── Outlet das estações ── */}
       {!isHub && (
         <div className="ns-outlet">
           <Outlet />
         </div>
       )}
 
-      {/* Modais */}
+      {/* ── Modais ── */}
       {editOpen && (
         <EditProfileModal
-          profile={currentProfile}
+          profile={profile}
           onClose={() => setEditOpen(false)}
-          onSave={handleSaveProfile}
+          onSave={() => setEditOpen(false)}
         />
       )}
       {achieveOpen && (
-        <AchievementsModal onClose={() => setAchieveOpen(false)} />
+        <AchievementsModal
+          profile={profile}
+          onClose={() => setAchieveOpen(false)}
+        />
       )}
     </div>
   );
