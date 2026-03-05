@@ -2,19 +2,44 @@ import { useState } from "react";
 import { Icons, MODULES, ACCOUNT_TYPES, maskBRL, unmaskBRL, fmt, calcAccountBalance } from "./financeConstants.jsx";
 import { Modal } from "./financeComponents.jsx";
 
+const EMPTY_FORM = { name: "", type: ACCOUNT_TYPES[0], balance: "", bank: "", color: "#38bdf8" };
+
 export default function AccountsModule({ accounts, setAccounts, transactions, onXp }) {
   const mod = MODULES.find(m => m.id === "contas");
-  const [modal, setModal] = useState(false);
-  const [form, setForm] = useState({ name: "", type: ACCOUNT_TYPES[0], balance: "", bank: "", color: "#38bdf8" });
+  const [modal,     setModal]     = useState(false);
+  const [editId,    setEditId]    = useState(null);   // null = nova conta
+  const [form,      setForm]      = useState(EMPTY_FORM);
 
   const totalBalance = accounts.reduce((a, b) => a + calcAccountBalance(b, transactions), 0);
 
-  function add() {
+  function openNew() {
+    setEditId(null);
+    setForm(EMPTY_FORM);
+    setModal(true);
+  }
+
+  function openEdit(acc) {
+    setEditId(acc.id);
+    setForm({
+      name:    acc.name,
+      type:    acc.type,
+      balance: acc.balance ? maskBRL(String(Math.round(acc.balance * 100))) : "",
+      bank:    acc.bank || "",
+      color:   acc.color || "#38bdf8",
+    });
+    setModal(true);
+  }
+
+  function save() {
     if (!form.name) return;
-    setAccounts(prev => [...prev, { id: Date.now(), ...form, balance: unmaskBRL(form.balance) }]);
-    setForm({ name: "", type: ACCOUNT_TYPES[0], balance: "", bank: "", color: "#38bdf8" });
+    const data = { ...form, balance: unmaskBRL(form.balance) };
+    if (editId) {
+      setAccounts(prev => prev.map(a => a.id === editId ? { ...a, ...data } : a));
+    } else {
+      setAccounts(prev => [...prev, { id: Date.now(), ...data }]);
+      onXp("conta_cadastrada");
+    }
     setModal(false);
-    onXp("conta_cadastrada");
   }
 
   return (
@@ -29,7 +54,7 @@ export default function AccountsModule({ accounts, setAccounts, transactions, on
         </div>
         <div className="fs-view-header-right">
           <span className="fs-view-total" style={{ color: mod.color }}>{fmt(totalBalance)}</span>
-          <button className="fs-new-btn" style={{ "--mod-color": mod.color }} onClick={() => setModal(true)}>
+          <button className="fs-new-btn" style={{ "--mod-color": mod.color }} onClick={openNew}>
             {Icons.plus} NOVA CONTA
           </button>
         </div>
@@ -46,7 +71,10 @@ export default function AccountsModule({ accounts, setAccounts, transactions, on
                     <span className="fs-account-name">{a.name}</span>
                     <span className="fs-account-type">{a.type}{a.bank ? ` · ${a.bank}` : ""}</span>
                   </div>
-                  <button className="fs-del-btn" onClick={() => setAccounts(prev => prev.filter(x => x.id !== a.id))}>
+                  <button className="fs-icon-btn" title="Editar conta" onClick={() => openEdit(a)}>
+                    {Icons.edit}
+                  </button>
+                  <button className="fs-del-btn" title="Excluir conta" onClick={() => setAccounts(prev => prev.filter(x => x.id !== a.id))}>
                     {Icons.trash}
                   </button>
                 </div>
@@ -59,12 +87,16 @@ export default function AccountsModule({ accounts, setAccounts, transactions, on
       }
 
       {modal && (
-        <Modal title="NOVA CONTA" color={mod.color} onClose={() => setModal(false)}>
+        <Modal
+          title={editId ? "EDITAR CONTA" : "NOVA CONTA"}
+          color={mod.color}
+          onClose={() => setModal(false)}
+        >
           <div className="fs-form-grid">
             <div className="fs-field fs-field--full">
               <label className="fs-label">NOME DA CONTA</label>
               <input className="fs-input" placeholder="Ex: Nubank Pessoal" value={form.name}
-                onChange={e => setForm({ ...form, name: e.target.value })} />
+                onChange={e => setForm({ ...form, name: e.target.value })} autoFocus />
             </div>
             <div className="fs-field">
               <label className="fs-label">TIPO</label>
@@ -78,7 +110,7 @@ export default function AccountsModule({ accounts, setAccounts, transactions, on
                 onChange={e => setForm({ ...form, bank: e.target.value })} />
             </div>
             <div className="fs-field">
-              <label className="fs-label">SALDO INICIAL (R$)</label>
+              <label className="fs-label">{editId ? "SALDO ATUAL (R$)" : "SALDO INICIAL (R$)"}</label>
               <input className="fs-input" placeholder="0,00" value={form.balance}
                 onChange={e => setForm({ ...form, balance: maskBRL(e.target.value.replace(/\D/g,"")) })} />
             </div>
@@ -91,7 +123,9 @@ export default function AccountsModule({ accounts, setAccounts, transactions, on
           </div>
           <div className="nx-modal-footer">
             <button className="nx-modal-link" onClick={() => setModal(false)}>CANCELAR</button>
-            <button className="nx-modal-confirm" onClick={add}>ADICIONAR CONTA</button>
+            <button className="nx-modal-confirm" onClick={save}>
+              {editId ? "SALVAR ALTERAÇÕES" : "ADICIONAR CONTA"}
+            </button>
           </div>
         </Modal>
       )}

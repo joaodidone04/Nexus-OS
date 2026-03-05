@@ -18,7 +18,7 @@ import SleepModule       from "./modules/SleepModule";
 import SupplementsModule from "./modules/SupplementsModule";
 
 // ─── Config ────────────────────────────────────────────────────────────────
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3001";
+const API_BASE = import.meta.env.VITE_API_URL || "https://nexus-os-e4w9.onrender.com";
 
 const MODULES = [
   { id: "dashboard",   label: "DASHBOARD",   sublabel: "Visão Geral",          icon: "📊", color: "#3b82f6", accent: "#2563eb" },
@@ -47,11 +47,11 @@ export default function HealthStation() {
 
   // Verifica se o backend está online
   useEffect(() => {
-    fetch(`${API}/health`)
-      .then(r => r.json())
-      .then(d => setApiOnline(d.ok))
-      .catch(() => setApiOnline(false));
-  }, []);
+  fetch(`${API_BASE.replace(/\/$/, "")}/api/health`)
+    .then((r) => r.json())
+    .then((d) => setApiOnline(!!d.ok))
+    .catch(() => setApiOnline(false));
+}, []);
 
   // ── Sub-tela de módulo ─────────────────────────────────────────────────
   if (activeModule) {
