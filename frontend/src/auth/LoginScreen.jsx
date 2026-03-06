@@ -132,19 +132,28 @@ export default function LoginScreen() {
   // ── Handlers ──────────────────────────────────
 
   async function handleGoogle() {
-  setLocalErr(""); clearError();
-  const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
-  if (isMobile) {
+    setLocalErr(""); clearError();
+    const isMobile = /Mobi|Android/i.test(navigator.userAgent);
+
+    if (isMobile) {
+      // Em mobile o signInWithRedirect causa reload da página —
+      // a Promise não resolve na mesma sessão, então não usamos finally.
+      setLoading(true);
+      try {
+        await signInWithGoogle();
+      } catch {
+        // Só cai aqui se der erro antes do redirect (ex: offline)
+        setLoading(false);
+      }
+      return;
+    }
+
+    // Desktop: popup resolve normalmente
     setLoading(true);
     try { await signInWithGoogle(); }
-    catch { setLoading(false); } // só cai aqui se errar ANTES do redirect
-    return; // página vai recarregar — não chega no finally
+    catch { /* erro já no context */ }
+    finally { setLoading(false); }
   }
-  setLoading(true);
-  try { await signInWithGoogle(); }
-  catch { }
-  finally { setLoading(false); }
-}
 
   async function handleApple() {
     setLocalErr(""); clearError();

@@ -1,20 +1,30 @@
 // ═══════════════════════════════════════════════════════════
 //  NΞXUS — AuthContext  (src/context/AuthContext.jsx)
-//  Substitui o NexusContext.  Envolve toda a app com
-//  autenticação Firebase + perfil Firestore em tempo real.
+//  Firebase Auth + Perfil Firestore (real-time) — robusto mobile
 // ═══════════════════════════════════════════════════════════
 import {
   createContext, useContext, useEffect, useRef, useState, useCallback,
 } from "react";
 import {
   onAuthStateChanged,
-  signInWithPopup, signInWithRedirect, getRedirectResult,
-  createUserWithEmailAndPassword, signInWithEmailAndPassword,
-  signOut, updateProfile, sendPasswordResetEmail,
-  linkWithPopup,
+  signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  updateProfile,
+  sendPasswordResetEmail,
+  setPersistence,
+  browserLocalPersistence,
 } from "firebase/auth";
+
 import { auth, googleProvider, appleProvider } from "../firebase/config";
-import { upsertUserProfile, subscribeUserProfile, updateUserProfile } from "../firebase/userService";
+import {
+  upsertUserProfile,
+  subscribeUserProfile,
+  updateUserProfile,
+} from "../firebase/userService";
 
 // ──────────────────────────────────────────────
 const AuthContext = createContext(null);
@@ -22,130 +32,181 @@ export const useAuth = () => useContext(AuthContext);
 
 // ──────────────────────────────────────────────
 export function AuthProvider({ children }) {
-  const [firebaseUser, setFirebaseUser] = useState(undefined); // undefined = carregando
-  const [profile,      setProfile]      = useState(null);
-  const [loading,      setLoading]      = useState(true);
-  const [authError,    setAuthError]    = useState("");
-  const [xpToast,      setXpToast]      = useState(null); // { xp, label, icon, levelUp, rankUp }
-  const profileUnsub     = useRef(null);
-  const redirectHandled  = useRef(false); // evita double-bootstrap redirect + onAuthStateChanged
+  // undefined = ainda carregando o estado inicial do Firebase
+  const [firebaseUser, setFirebaseUser] = useState(undefined);
+  const [profile, setProfile] = useState(null);
 
-  // ── Listener de auth state ───────────────────
+  // Loading separado (isso aqui é a chave do teu bug)
+  const [loadingAuth, setLoadingAuth] = useState(true);
+  const [loadingProfile, setLoadingProfile] = useState(false);
+
+  const [authError, setAuthError] = useState("");
+  const [xpToast, setXpToast] = useState(null);
+
+  const profileUnsub = useRef(null);
+  const bootstrapping = useRef(false);
+
+  // ── Inicializa persistência + redirect result + auth listener ──
   useEffect(() => {
-    // Resultado de redirect (Google/Apple em mobile)
-    getRedirectResult(auth).then(async (result) => {
-      if (result?.user) {
-        redirectHandled.current = true;
-        await bootstrapUser(result.user);
+  let mounted = true;
+
+  async function initAuth() {
+
+    try {
+      await setPersistence(auth, browserLocalPersistence);
+    } catch {}
+
+    // 🔥 IMPORTANTE PARA iOS
+    try {
+      const result = await getRedirectResult(auth);
+
+      if (result?.user && mounted) {
+        setFirebaseUser(result.user);
+        setLoadingAuth(false);
+        safeBootstrapProfile(result.user);
+        return;
       }
-    }).catch((err) => {
-      console.error("getRedirectResult error:", err);
-      setLoading(false);
-    });
+
+    } catch (err) {
+      console.log("redirect error:", err);
+    }
 
     const unsub = onAuthStateChanged(auth, async (user) => {
+
+      if (!mounted) return;
+
+      setLoadingAuth(false);
+
       if (user) {
-        // Se o redirect já fez o bootstrap, evita duplicar
-        if (redirectHandled.current) {
-          redirectHandled.current = false;
-          return;
-        }
-        await bootstrapUser(user);
+        setFirebaseUser(user);
+        safeBootstrapProfile(user);
       } else {
-        // Deslogou
         profileUnsub.current?.();
         setFirebaseUser(null);
         setProfile(null);
-        setLoading(false);
+        setLoadingProfile(false);
       }
+
     });
 
-    return () => { unsub(); profileUnsub.current?.(); };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    return () => unsub();
+  }
 
-  // ── Inicializa usuário após login ────────────
-  async function bootstrapUser(user) {
-    setFirebaseUser(user);
-    // Cria/atualiza perfil no Firestore
-    await upsertUserProfile(user);
-    // Listener em tempo real no perfil
+  initAuth();
+
+  return () => {
+    mounted = false;
     profileUnsub.current?.();
-    profileUnsub.current = subscribeUserProfile(user.uid, (data) => {
-      setProfile(data);
-      setLoading(false);
-    });
+  };
+
+}, []);
+
+  // ── Bootstrap do perfil (não travar auth se falhar) ──
+  async function safeBootstrapProfile(user) {
+    // evita rodar em paralelo múltiplas vezes
+    if (bootstrapping.current) return;
+    bootstrapping.current = true;
+
+    setLoadingProfile(true);
+
+    try {
+      // cria/atualiza perfil
+      await upsertUserProfile(user);
+
+      // sub em tempo real
+      profileUnsub.current?.();
+      profileUnsub.current = subscribeUserProfile(user.uid, (data) => {
+        setProfile(data || null);
+        setLoadingProfile(false);
+      });
+
+      // ⚠️ fallback: se por qualquer motivo o subscribe não disparar,
+      // não deixa loadingProfile travar pra sempre
+      setTimeout(() => {
+        setLoadingProfile((prev) => (prev ? false : prev));
+      }, 5000);
+    } catch (err) {
+      console.error("bootstrap profile error:", err);
+      // Se der erro de regra/permissão, você ainda está logado
+      setLoadingProfile(false);
+      // opcional: setAuthError("Perfil indisponível no momento.");
+    } finally {
+      bootstrapping.current = false;
+    }
   }
 
   // ──────────────────────────────────────────────
   //  MÉTODOS DE AUTH
   // ──────────────────────────────────────────────
 
-  /** Login com Google (popup desktop, redirect mobile) */
   const signInWithGoogle = useCallback(async () => {
     setAuthError("");
-    const isMobile = /Mobi|Android/i.test(navigator.userAgent);
+    const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+
     try {
       if (isMobile) {
-        // signInWithRedirect causa reload — a Promise não resolve na mesma sessão
         await signInWithRedirect(auth, googleProvider);
-      } else {
-        const result = await signInWithPopup(auth, googleProvider);
-        await bootstrapUser(result.user);
+        return; // vai recarregar
       }
+
+      const result = await signInWithPopup(auth, googleProvider);
+      // onAuthStateChanged vai cuidar, mas isso acelera no desktop:
+      setFirebaseUser(result.user);
+      safeBootstrapProfile(result.user);
     } catch (err) {
       setAuthError(friendlyError(err.code));
       throw err;
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  /** Login com Apple */
   const signInWithApple = useCallback(async () => {
     setAuthError("");
     const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+
     try {
       if (isMobile) {
         await signInWithRedirect(auth, appleProvider);
-      } else {
-        const result = await signInWithPopup(auth, appleProvider);
-        await bootstrapUser(result.user);
+        return;
       }
+
+      const result = await signInWithPopup(auth, appleProvider);
+      setFirebaseUser(result.user);
+      safeBootstrapProfile(result.user);
     } catch (err) {
       setAuthError(friendlyError(err.code));
       throw err;
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  /** Cadastro com e-mail + senha */
   const signUpWithEmail = useCallback(async (email, password, displayName) => {
     setAuthError("");
     try {
       const { user } = await createUserWithEmailAndPassword(auth, email, password);
       await updateProfile(user, { displayName });
-      await bootstrapUser(user);
+      setFirebaseUser(user);
+      safeBootstrapProfile(user);
     } catch (err) {
       setAuthError(friendlyError(err.code));
       throw err;
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  /** Login com e-mail + senha */
   const signInWithEmail = useCallback(async (email, password) => {
     setAuthError("");
     try {
       const { user } = await signInWithEmailAndPassword(auth, email, password);
-      await bootstrapUser(user);
+      setFirebaseUser(user);
+      safeBootstrapProfile(user);
     } catch (err) {
       setAuthError(friendlyError(err.code));
       throw err;
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  /** Reset de senha */
   const resetPassword = useCallback(async (email) => {
     setAuthError("");
     try {
@@ -156,40 +217,47 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
-  /** Logout */
   const logout = useCallback(async () => {
-    profileUnsub.current?.();
-    await signOut(auth);
-    setFirebaseUser(null);
-    setProfile(null);
+    try {
+      profileUnsub.current?.();
+      await signOut(auth);
+    } finally {
+      setFirebaseUser(null);
+      setProfile(null);
+      setLoadingProfile(false);
+    }
   }, []);
 
-  /** Atualizar perfil (nome, bio, photoURL, settings) */
   const updateMyProfile = useCallback(async (fields) => {
     if (!firebaseUser) return;
+
     if (fields.displayName) {
       await updateProfile(firebaseUser, { displayName: fields.displayName });
     }
     await updateUserProfile(firebaseUser.uid, fields);
   }, [firebaseUser]);
 
-  /** Mostra notificação de XP na tela */
   const showXPToast = useCallback((data) => {
     setXpToast(data);
     setTimeout(() => setXpToast(null), 3500);
   }, []);
 
-  // ──────────────────────────────────────────────
+  // ✅ Agora “logado” é só Firebase Auth, não depende do Firestore
+  const isAuthenticated = !!firebaseUser;
+
   const value = {
-    // Estado
     firebaseUser,
     profile,
-    loading,
+    loadingAuth,
+    loadingProfile,
+    // se você quiser manter compatibilidade:
+    loading: loadingAuth || loadingProfile,
+
     authError,
     xpToast,
-    isAuthenticated: !!firebaseUser && !loading,
 
-    // Auth
+    isAuthenticated,
+
     signInWithGoogle,
     signInWithApple,
     signUpWithEmail,
@@ -197,7 +265,6 @@ export function AuthProvider({ children }) {
     resetPassword,
     logout,
 
-    // Perfil
     updateMyProfile,
     showXPToast,
     clearError: () => setAuthError(""),
@@ -207,19 +274,19 @@ export function AuthProvider({ children }) {
 }
 
 // ──────────────────────────────────────────────
-//  MENSAGENS DE ERRO AMIGÁVEIS
+//  ERROS AMIGÁVEIS
 // ──────────────────────────────────────────────
 function friendlyError(code) {
   const map = {
-    "auth/email-already-in-use":    "Este e-mail já está em uso.",
-    "auth/invalid-email":           "E-mail inválido.",
-    "auth/weak-password":           "Senha muito fraca. Mínimo 6 caracteres.",
-    "auth/user-not-found":          "Operador não encontrado.",
-    "auth/wrong-password":          "Chave de acesso incorreta.",
-    "auth/too-many-requests":       "Muitas tentativas. Aguarde um momento.",
-    "auth/popup-closed-by-user":    "Login cancelado.",
+    "auth/email-already-in-use": "Este e-mail já está em uso.",
+    "auth/invalid-email": "E-mail inválido.",
+    "auth/weak-password": "Senha muito fraca. Mínimo 6 caracteres.",
+    "auth/user-not-found": "Operador não encontrado.",
+    "auth/wrong-password": "Chave de acesso incorreta.",
+    "auth/too-many-requests": "Muitas tentativas. Aguarde um momento.",
+    "auth/popup-closed-by-user": "Login cancelado.",
     "auth/cancelled-popup-request": "Login cancelado.",
-    "auth/network-request-failed":  "Falha de conexão. Verifique sua internet.",
+    "auth/network-request-failed": "Falha de conexão. Verifique sua internet.",
     "auth/account-exists-with-different-credential":
       "Este e-mail já está vinculado a outro método de login.",
   };
